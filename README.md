@@ -7,7 +7,7 @@
     var elmahio = new elmahio.log();
 </script>
 ```
-OR
+or
 ```
 <script src="elmahio-logger.js" type="text/javascript"></script>
 <script type="text/javascript">
