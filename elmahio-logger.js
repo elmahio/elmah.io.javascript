@@ -273,11 +273,96 @@
 			}
 		};
 
-		/**
-		 * A public method
-		 */
-		publicAPIs.doSomething = function () {
+		var sendManualPayload = function (apiKey, logId, callback, logType, messageLog, errorLog) {
+			var api_key = apiKey,
+				log_id = logId,
+				type = logType,
+				error = errorLog,
+				message = messageLog,
+				queryParams = getSearchParameters();
 
+			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
+
+				// Priority for parameters
+				if (paramsLength === 2) {
+					api_key = params['api_key'];
+					log_id = params['log_id'];
+				}
+
+				// get new XHR object
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "https://api.elmah.io/v3/messages/" + log_id + "?api_key=" + api_key, true);
+				xhr.setRequestHeader('Content-type', 'application/json');
+
+				xhr.onload = function (e) {
+					if (xhr.readyState === 4) {
+						if (xhr.status === 201) {
+							callback('success', xhr.statusText);
+						}
+					}
+				};
+
+				xhr.onerror = function (e) {
+					callback('error', xhr.statusText);
+				}
+
+				var jsonData = JSON.stringify({
+					"title": message || 'Not available',
+					"severity": type,
+					"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+					"queryString": JSON.parse(JSON.stringify(queryParams))
+				});
+
+				xhr.send(jsonData);
+
+			} else {
+				return console.log('Login api error');
+			}
+		};
+
+		/**
+		 * Some public methods
+		 */
+		publicAPIs.error = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
+		};
+		publicAPIs.error = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
+		};
+
+		publicAPIs.verbose = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg);
+		};
+		publicAPIs.verbose = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
+		};
+
+		publicAPIs.debug = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg);
+		};
+		publicAPIs.debug = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
+		};
+
+		publicAPIs.information = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg);
+		};
+		publicAPIs.information = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
+		};
+
+		publicAPIs.warning = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg);
+		};
+		publicAPIs.warning = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
+		};
+
+		publicAPIs.fatal = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg);
+		};
+		publicAPIs.fatal = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
 		};
 
 		/**
