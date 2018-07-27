@@ -21,11 +21,11 @@
 	//
 
 	var scriptFile = document.getElementsByTagName('script');
-	var	scriptIndex = scriptFile.length - 1;
-	var	myScript = scriptFile[scriptIndex];
-	var	queryString = myScript.src.replace(/^[^\?]+\??/, '');
-	var	params = parseQuery(queryString);
-	var	paramsLength = objectLength(params);
+	var scriptIndex = scriptFile.length - 1;
+	var myScript = scriptFile[scriptIndex];
+	var queryString = myScript.src.replace(/^[^\?]+\??/, '');
+	var params = parseQuery(queryString);
+	var paramsLength = objectLength(params);
 	var debugSettings = {
 		label: ' Elmah.io debugger : On ',
 		labelCSS: 'background: #06a89c; color: #ffffff; display: inline-block; font-size: 14px;',
