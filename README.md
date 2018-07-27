@@ -28,3 +28,4 @@ new Elmahio({
 ```
 debug: true
 ```
+![debugging true - demo](debug-true.png)
