@@ -80,50 +80,7 @@ debug: true
 ```
 Where __msg__ is a text string and __error__ is an object.
 
+##### Example:
 ```
-var error = {
-  "application": "string",
-  "detail": "string",
-  "hostname": "string",
-  "title": "string",
-  "source": "string",
-  "statusCode": 0,
-  "dateTime": "2018-07-27T11:35:54.569Z",
-  "type": "string",
-  "user": "string",
-  "severity": "string",
-  "url": "string",
-  "method": "string",
-  "version": "string",
-  "cookies": [
-    {
-      "key": "string",
-      "value": "string"
-    }
-  ],
-  "form": [
-    {
-      "key": "string",
-      "value": "string"
-    }
-  ],
-  "queryString": [
-    {
-      "key": "string",
-      "value": "string"
-    }
-  ],
-  "serverVariables": [
-    {
-      "key": "string",
-      "value": "string"
-    }
-  ],
-  "data": [
-    {
-      "key": "string",
-      "value": "string"
-    }
-  ]
-}
+log.information('A message here', new Error('A human-readable description of the error'));
 ```
