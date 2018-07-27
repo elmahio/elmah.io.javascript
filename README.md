@@ -19,7 +19,7 @@ UMD Constructor with inline parameters
 
 or
 
-UMD Constructor
+UMD Constructor with options
 ```
 <script src="elmahio-logger.js" type="text/javascript"></script>
 <script type="text/javascript">
