@@ -33,6 +33,7 @@ debug: true
 #### Manual logging
 ```
 <script type="text/javascript">
+
   var log = new Elmahio({
     apiKey: 'YOUR-API-KEY',
     logId: 'YOUR-LOG-ID',
