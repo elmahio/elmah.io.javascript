@@ -14,3 +14,12 @@ var log = new Elmahio({
 });
 </script>
 ```
+
+#### Default options
+```
+new Elmahio({
+  apiKey: null,
+  logId: null,
+  debug: false
+});
+```
