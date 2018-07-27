@@ -68,3 +68,40 @@ debug: true
 </script>
 ```
 Where __msg__ is a text string and __error__ is an object.
+
+```
+var error = {
+  "hostname": document.domain,
+  "title": "error title would go here",
+  "type": "error type would go here",
+  "severity": "Error",
+  "url": [document.location.protocol,'//',document.location.host,document.location.pathname,document.location.hash].join('') || '/',
+  "queryString": [
+    {
+      "key": "you need to parse up",
+      "value": "document.location.search"
+    }
+  ],
+  "data": [
+    {
+      "key": "User-Language",
+      "value": navigator.language
+    },
+    {
+      "key": "Color-Depth",
+      "value": screen.colorDepth
+    },
+    ...
+  ],
+  "serverVariables": [
+    {
+      "key": "User-Agent",
+      "value": navigator.userAgent
+    },
+    {
+      "key": "Referer",
+      "value": document.referrer
+    }
+  ]
+}
+```
