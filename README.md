@@ -67,3 +67,4 @@ debug: true
 
 </script>
 ```
+Where __msg__ is a text string and __error__ is an object.
