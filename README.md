@@ -6,6 +6,7 @@ Immediately-Invoked Function Expression (IIFE)
 ```
 <script src="elmahio-logger.js?api_key=YOUR-API-KEY&log_id=YOUR-LOG-ID&iife=1" type="text/javascript"></script>
 ```
+
 or
 
 UMD Constructor with inline parameters
@@ -15,6 +16,9 @@ UMD Constructor with inline parameters
   var log = new Elmahio();
 </script>
 ```
+
+or
+
 UMD Constructor
 ```
 <script src="elmahio-logger.js" type="text/javascript"></script>
