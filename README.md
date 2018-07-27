@@ -23,3 +23,8 @@ new Elmahio({
   debug: false
 });
 ```
+
+#### Debugging
+```
+debug: true
+```
