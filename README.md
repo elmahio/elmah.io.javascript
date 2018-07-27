@@ -19,6 +19,7 @@ UMD Constructor
 </script>
 ```
 
+
 ### Default options
 ```
 new Elmahio({
@@ -28,14 +29,16 @@ new Elmahio({
 });
 ```
 
+
 ### Debugging
 ```
 debug: true
 ```
 ![debugging true - demo](debug-true.png)
 
+
 ### Manual logging
-*Works only with UMD Constructor*
+*Works only with UMD Constructor !*
 ```
 <script type="text/javascript">
 
