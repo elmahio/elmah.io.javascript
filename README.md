@@ -35,6 +35,7 @@ debug: true
 ![debugging true - demo](debug-true.png)
 
 #### Manual logging
+Works only with UMD Constructor
 ```
 <script type="text/javascript">
 
