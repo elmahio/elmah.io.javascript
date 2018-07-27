@@ -148,6 +148,182 @@
 		return obj3;
 	}
 
+	function ErrorStackParser(StackFrame) {
+		'use strict';
+
+		var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
+		var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+\:\d+|\(native\))/m;
+		var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code\])?$/;
+
+		return {
+			parse: function (error) {
+				if (typeof error.stacktrace !== 'undefined' || typeof error['opera#sourceloc'] !== 'undefined') {
+					return this.parseOpera(error);
+				} else if (error.stack && error.stack.match(CHROME_IE_STACK_REGEXP)) {
+					return this.parseV8OrIE(error);
+				} else if (error.stack) {
+					return this.parseFFOrSafari(error);
+				} else {
+					throw new Error('Cannot parse given Error object');
+				}
+			},
+
+			// Separate line and column numbers from a string of the form: (URI:Line:Column)
+			extractLocation: function ErrorStackParser$$extractLocation(urlLike) {
+				// Fail-fast but return locations like "(native)"
+				if (urlLike.indexOf(':') === -1) {
+					return [urlLike];
+				}
+
+				var regExp = /(.+?)(?:\:(\d+))?(?:\:(\d+))?$/;
+				var parts = regExp.exec(urlLike.replace(/[\(\)]/g, ''));
+				return [parts[1], parts[2] || undefined, parts[3] || undefined];
+			},
+
+			parseV8OrIE: function ErrorStackParser$$parseV8OrIE(error) {
+				var filtered = error.stack.split('\n').filter(function (line) {
+					return !!line.match(CHROME_IE_STACK_REGEXP);
+				}, this);
+
+				return filtered.map(function (line) {
+					if (line.indexOf('(eval ') > -1) {
+						// Throw away eval information until we implement stacktrace.js/stackframe#8
+						line = line.replace(/eval code/g, 'eval').replace(/(\(eval at [^\()]*)|(\)\,.*$)/g, '');
+					}
+					var tokens = line.replace(/^\s+/, '').replace(/\(eval code/g, '(').split(/\s+/).slice(1);
+					var locationParts = this.extractLocation(tokens.pop());
+					var functionName = tokens.join(' ') || undefined;
+					var fileName = ['eval', '<anonymous>'].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
+
+					return ({
+						functionName: functionName,
+						fileName: fileName,
+						lineNumber: locationParts[1],
+						columnNumber: locationParts[2],
+						source: line
+					});
+				}, this);
+			},
+
+			parseFFOrSafari: function ErrorStackParser$$parseFFOrSafari(error) {
+				var filtered = error.stack.split('\n').filter(function (line) {
+					return !line.match(SAFARI_NATIVE_CODE_REGEXP);
+				}, this);
+
+				return filtered.map(function (line) {
+					// Throw away eval information until we implement stacktrace.js/stackframe#8
+					if (line.indexOf(' > eval') > -1) {
+						line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g, ':$1');
+					}
+
+					if (line.indexOf('@') === -1 && line.indexOf(':') === -1) {
+						// Safari eval frames only have function names and nothing else
+						return ({
+							functionName: line
+						});
+					} else {
+						var functionNameRegex = /((.*".+"[^@]*)?[^@]*)(?:@)/;
+						var matches = line.match(functionNameRegex);
+						var functionName = matches && matches[1] ? matches[1] : undefined;
+						var locationParts = this.extractLocation(line.replace(functionNameRegex, ''));
+
+						return ({
+							functionName: functionName,
+							fileName: locationParts[0],
+							lineNumber: locationParts[1],
+							columnNumber: locationParts[2],
+							source: line
+						});
+					}
+				}, this);
+			},
+
+			parseOpera: function ErrorStackParser$$parseOpera(e) {
+				if (!e.stacktrace || (e.message.indexOf('\n') > -1 &&
+					e.message.split('\n').length > e.stacktrace.split('\n').length)) {
+					return this.parseOpera9(e);
+				} else if (!e.stack) {
+					return this.parseOpera10(e);
+				} else {
+					return this.parseOpera11(e);
+				}
+			},
+
+			parseOpera9: function ErrorStackParser$$parseOpera9(e) {
+				var lineRE = /Line (\d+).*script (?:in )?(\S+)/i;
+				var lines = e.message.split('\n');
+				var result = [];
+
+				for (var i = 2, len = lines.length; i < len; i += 2) {
+					var match = lineRE.exec(lines[i]);
+					if (match) {
+						result.push(({
+							fileName: match[2],
+							lineNumber: match[1],
+							source: lines[i]
+						}));
+					}
+				}
+
+				return result;
+			},
+
+			parseOpera10: function ErrorStackParser$$parseOpera10(e) {
+				var lineRE = /Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i;
+				var lines = e.stacktrace.split('\n');
+				var result = [];
+
+				for (var i = 0, len = lines.length; i < len; i += 2) {
+					var match = lineRE.exec(lines[i]);
+					if (match) {
+						result.push(
+							({
+								functionName: match[3] || undefined,
+								fileName: match[2],
+								lineNumber: match[1],
+								source: lines[i]
+							})
+						);
+					}
+				}
+
+				return result;
+			},
+
+			// Opera 10.65+ Error.stack very similar to FF/Safari
+			parseOpera11: function ErrorStackParser$$parseOpera11(error) {
+				var filtered = error.stack.split('\n').filter(function (line) {
+					return !!line.match(FIREFOX_SAFARI_STACK_REGEXP) && !line.match(/^Error created at/);
+				}, this);
+
+				return filtered.map(function (line) {
+					var tokens = line.split('@');
+					var locationParts = this.extractLocation(tokens.pop());
+					var functionCall = (tokens.shift() || '');
+					var functionName = functionCall
+						.replace(/<anonymous function(: (\w+))?>/, '$2')
+						.replace(/\([^\)]*\)/g, '') || undefined;
+					var argsRaw;
+					if (functionCall.match(/\(([^\)]*)\)/)) {
+						argsRaw = functionCall.replace(/^[^\(]+\(([^\)]*)\)$/, '$1');
+					}
+					var args = (argsRaw === undefined || argsRaw === '[arguments not available]') ?
+						undefined : argsRaw.split(',');
+
+					return ({
+						functionName: functionName,
+						args: args,
+						fileName: locationParts[0],
+						lineNumber: locationParts[1],
+						columnNumber: locationParts[2],
+						source: line
+					});
+				}, this);
+			}
+		};
+
+	}
+
 
 	//
 	// Constructor
@@ -214,10 +390,10 @@
 
 				var jsonData = JSON.stringify({
 					"application": "-",
-					"detail": error.error.stack || 'Not available',
-					"hostname": document.domain || 'Not available',
-					"title": error.message || 'Not available',
-					"source": error.source || 'Not available',
+					"detail": error.error.stack,
+					"hostname": document.domain,
+					"title": error.message,
+					"source": error.source,
 					"type": "string",
 					"severity": "Error",
 					"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
@@ -225,47 +401,47 @@
 					"data": [
 						{
 							"key": "User-Language",
-							"value": navigator.language || 'Not available'
+							"value": navigator.language
 						},
 						{
 							"key": "Document-Mode",
-							"value": document.documentMode || 'Not available'
+							"value": document.documentMode
 						},
 						{
 							"key": "Browser-Width",
-							"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth || 'Not available'
+							"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
 						},
 						{
 							"key": "Browser-Height",
-							"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight || 'Not available'
+							"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
 						},
 						{
 							"key": "Screen-Width",
-							"value": screen.width || 'Not available'
+							"value": screen.width
 						},
 						{
 							"key": "Screen-Height",
-							"value": screen.height || 'Not available'
+							"value": screen.height
 						},
 						{
 							"key": "Color-Depth",
-							"value": screen.colorDepth || 'Not available'
+							"value": screen.colorDepth
 						},
 						{
 							"key": "Browser",
-							"value": navigator.appCodeName || 'Not available'
+							"value": navigator.appCodeName
 						},
 						{
 							"key": "Browser-Name",
-							"value": navigator.appName || 'Not available'
+							"value": navigator.appName
 						},
 						{
 							"key": "Browser-Version",
-							"value": navigator.appVersion || 'Not available'
+							"value": navigator.appVersion
 						},
 						{
 							"key": "Platform",
-							"value": navigator.platform || 'Not available'
+							"value": navigator.platform
 						}
 					],
 					"serverVariables": [
@@ -320,16 +496,81 @@
 					callback('error', xhr.statusText);
 				}
 
+				var errorstack = ErrorStackParser().parse(error)[0];
+
 				var jsonData = {
-					"title": message || 'Not available',
+					"application": "-",
+					"hostname": document.domain,
+					"title": message,
+					"source": errorstack.fileName,
+					"detail": error.stack,
+					"type": "string",
 					"severity": type,
 					"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
-					"queryString": JSON.parse(JSON.stringify(queryParams))
+					"queryString": JSON.parse(JSON.stringify(queryParams)),
+					"data": [
+						{
+							"key": "User-Language",
+							"value": navigator.language
+						},
+						{
+							"key": "Document-Mode",
+							"value": document.documentMode
+						},
+						{
+							"key": "Browser-Width",
+							"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
+						},
+						{
+							"key": "Browser-Height",
+							"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
+						},
+						{
+							"key": "Screen-Width",
+							"value": screen.width
+						},
+						{
+							"key": "Screen-Height",
+							"value": screen.height
+						},
+						{
+							"key": "Color-Depth",
+							"value": screen.colorDepth
+						},
+						{
+							"key": "Browser",
+							"value": navigator.appCodeName
+						},
+						{
+							"key": "Browser-Name",
+							"value": navigator.appName
+						},
+						{
+							"key": "Browser-Version",
+							"value": navigator.appVersion
+						},
+						{
+							"key": "Platform",
+							"value": navigator.platform
+						}
+					],
+					"serverVariables": [
+						{
+							"key": "User-Agent",
+							"value": navigator.userAgent
+						},
+						{
+							"key": "Referer",
+							"value": document.referrer
+						}
+					]
 				};
-
+				
+				/*
 				if(error) {
 					jsonData = merge_objects(jsonData, error);
 				}
+				*/
 
 				xhr.send(JSON.stringify(jsonData));
 
@@ -426,8 +667,8 @@
 	// Return the constructor
 	//
 
-	if (paramsLength === 2) {
-		if (params.hasOwnProperty('api_key') && params.hasOwnProperty('log_id')) {
+	if (paramsLength === 3) {
+		if (params.hasOwnProperty('api_key') && params.hasOwnProperty('log_id') && params.hasOwnProperty('iife')) {
 			// Immediately-Invoked Function Expression (IIFE)
 			return new Constructor;
 		}
