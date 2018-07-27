@@ -1,6 +1,6 @@
 # elmahio-logger
 
-#### Initialization
+### Initialization
 
 Immediately-Invoked Function Expression (IIFE)
 ```
@@ -19,7 +19,7 @@ UMD Constructor
 </script>
 ```
 
-#### Default options
+### Default options
 ```
 new Elmahio({
   apiKey: null,
@@ -28,13 +28,13 @@ new Elmahio({
 });
 ```
 
-#### Debugging
+### Debugging
 ```
 debug: true
 ```
 ![debugging true - demo](debug-true.png)
 
-#### Manual logging
+### Manual logging
 Works only with UMD Constructor
 ```
 <script type="text/javascript">
