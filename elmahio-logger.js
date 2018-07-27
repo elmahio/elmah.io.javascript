@@ -134,6 +134,13 @@
 		return params;
 	}
 
+	function merge_objects(obj1, obj2) {
+		var obj3 = {};
+		for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+		for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+		return obj3;
+	}
+
 
 	//
 	// Constructor
@@ -306,14 +313,18 @@
 					callback('error', xhr.statusText);
 				}
 
-				var jsonData = JSON.stringify({
+				var jsonData = {
 					"title": message || 'Not available',
 					"severity": type,
 					"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
 					"queryString": JSON.parse(JSON.stringify(queryParams))
-				});
+				};
 
-				xhr.send(jsonData);
+				if(error) {
+					jsonData = merge_objects(jsonData, error);
+				}
+
+				xhr.send(JSON.stringify(jsonData));
 
 			} else {
 				return console.log('Login api error');
