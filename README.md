@@ -1,10 +1,14 @@
 # elmahio-logger
 
 #### Initialization
+
+Immediately-Invoked Function Expression (IIFE)
 ```
 <script src="elmahio-logger.js?api_key=YOUR-API-KEY&log_id=YOUR-LOG-ID" type="text/javascript"></script>
 ```
 or
+
+UMD Constructor
 ```
 <script src="elmahio-logger.js" type="text/javascript"></script>
 <script type="text/javascript">
