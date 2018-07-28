@@ -78,7 +78,7 @@ debug: true
 
 </script>
 ```
-Where __msg__ is a text string and __error__ is an object.
+Where __msg__ is a text string and __error__ is a [JavaScript Error Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
 
 ##### Example:
 ```
