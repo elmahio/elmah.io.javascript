@@ -338,6 +338,66 @@
 
 		var publicAPIs = {};
 		var settings;
+		var payload = {
+			"hostname": document.domain,
+			"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+			"data": [
+				{
+					"key": "User-Language",
+					"value": navigator.language
+				},
+				{
+					"key": "Document-Mode",
+					"value": document.documentMode
+				},
+				{
+					"key": "Browser-Width",
+					"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
+				},
+				{
+					"key": "Browser-Height",
+					"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
+				},
+				{
+					"key": "Screen-Width",
+					"value": screen.width
+				},
+				{
+					"key": "Screen-Height",
+					"value": screen.height
+				},
+				{
+					"key": "Color-Depth",
+					"value": screen.colorDepth
+				},
+				{
+					"key": "Browser",
+					"value": navigator.appCodeName
+				},
+				{
+					"key": "Browser-Name",
+					"value": navigator.appName
+				},
+				{
+					"key": "Browser-Version",
+					"value": navigator.appVersion
+				},
+				{
+					"key": "Platform",
+					"value": navigator.platform
+				}
+			],
+			"serverVariables": [
+				{
+					"key": "User-Agent",
+					"value": navigator.userAgent
+				},
+				{
+					"key": "Referer",
+					"value": document.referrer
+				}
+			]
+		};
 
 		function confirmResponse(status, response) {
 			if (settings.debug) {
@@ -388,75 +448,20 @@
 					callback('error', xhr.statusText);
 				}
 
-				var jsonData = JSON.stringify({
+				var jsonData = {
 					"application": "-",
 					"detail": error.error.stack,
-					"hostname": document.domain,
 					"title": error.message,
 					"source": error.source,
 					"type": "string",
 					"severity": "Error",
-					"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
-					"queryString": JSON.parse(JSON.stringify(queryParams)),
-					"data": [
-						{
-							"key": "User-Language",
-							"value": navigator.language
-						},
-						{
-							"key": "Document-Mode",
-							"value": document.documentMode
-						},
-						{
-							"key": "Browser-Width",
-							"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
-						},
-						{
-							"key": "Browser-Height",
-							"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
-						},
-						{
-							"key": "Screen-Width",
-							"value": screen.width
-						},
-						{
-							"key": "Screen-Height",
-							"value": screen.height
-						},
-						{
-							"key": "Color-Depth",
-							"value": screen.colorDepth
-						},
-						{
-							"key": "Browser",
-							"value": navigator.appCodeName
-						},
-						{
-							"key": "Browser-Name",
-							"value": navigator.appName
-						},
-						{
-							"key": "Browser-Version",
-							"value": navigator.appVersion
-						},
-						{
-							"key": "Platform",
-							"value": navigator.platform
-						}
-					],
-					"serverVariables": [
-						{
-							"key": "User-Agent",
-							"value": navigator.userAgent
-						},
-						{
-							"key": "Referer",
-							"value": document.referrer
-						}
-					]
-				});
+					"queryString": JSON.parse(JSON.stringify(queryParams))
+				};
 
-				xhr.send(jsonData);
+				// Add payload to jsonData
+				jsonData = merge_objects(jsonData, payload);
+
+				xhr.send(JSON.stringify(jsonData));
 
 			} else {
 				return console.log('Login api error');
@@ -500,77 +505,16 @@
 
 				var jsonData = {
 					"application": "-",
-					"hostname": document.domain,
 					"title": message,
 					"source": errorstack.fileName,
 					"detail": error.stack,
 					"type": "string",
 					"severity": type,
-					"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
-					"queryString": JSON.parse(JSON.stringify(queryParams)),
-					"data": [
-						{
-							"key": "User-Language",
-							"value": navigator.language
-						},
-						{
-							"key": "Document-Mode",
-							"value": document.documentMode
-						},
-						{
-							"key": "Browser-Width",
-							"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
-						},
-						{
-							"key": "Browser-Height",
-							"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
-						},
-						{
-							"key": "Screen-Width",
-							"value": screen.width
-						},
-						{
-							"key": "Screen-Height",
-							"value": screen.height
-						},
-						{
-							"key": "Color-Depth",
-							"value": screen.colorDepth
-						},
-						{
-							"key": "Browser",
-							"value": navigator.appCodeName
-						},
-						{
-							"key": "Browser-Name",
-							"value": navigator.appName
-						},
-						{
-							"key": "Browser-Version",
-							"value": navigator.appVersion
-						},
-						{
-							"key": "Platform",
-							"value": navigator.platform
-						}
-					],
-					"serverVariables": [
-						{
-							"key": "User-Agent",
-							"value": navigator.userAgent
-						},
-						{
-							"key": "Referer",
-							"value": document.referrer
-						}
-					]
+					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
-				
-				/*
-				if(error) {
-					jsonData = merge_objects(jsonData, error);
-				}
-				*/
+
+				// Add payload to jsonData
+				jsonData = merge_objects(jsonData, payload);
 
 				xhr.send(JSON.stringify(jsonData));
 
