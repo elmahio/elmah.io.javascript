@@ -140,9 +140,7 @@
 			obj3[attrname] = obj1[attrname];
 		}
 		for (var attrname in obj2) {
-			if (attrname !== 'title' && attrname !== 'severity') {
-				obj3[attrname] = obj2[attrname];
-			}
+			obj3[attrname] = obj2[attrname];
 		}
 
 		return obj3;
@@ -338,66 +336,36 @@
 
 		var publicAPIs = {};
 		var settings;
-		var payload = {
-			"hostname": document.domain,
-			"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
-			"data": [
-				{
-					"key": "User-Language",
-					"value": navigator.language
-				},
-				{
-					"key": "Document-Mode",
-					"value": document.documentMode
-				},
-				{
-					"key": "Browser-Width",
-					"value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
-				},
-				{
-					"key": "Browser-Height",
-					"value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
-				},
-				{
-					"key": "Screen-Width",
-					"value": screen.width
-				},
-				{
-					"key": "Screen-Height",
-					"value": screen.height
-				},
-				{
-					"key": "Color-Depth",
-					"value": screen.colorDepth
-				},
-				{
-					"key": "Browser",
-					"value": navigator.appCodeName
-				},
-				{
-					"key": "Browser-Name",
-					"value": navigator.appName
-				},
-				{
-					"key": "Browser-Version",
-					"value": navigator.appVersion
-				},
-				{
-					"key": "Platform",
-					"value": navigator.platform
-				}
-			],
-			"serverVariables": [
-				{
-					"key": "User-Agent",
-					"value": navigator.userAgent
-				},
-				{
-					"key": "Referer",
-					"value": document.referrer
-				}
-			]
-		};
+
+		function getPayload() {
+			var payload = {
+				"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+			};
+
+			var payload_data = [];
+
+			if (navigator.language) payload_data.push({ "key": "User-Language", "value": navigator.language });
+			if (document.documentMode) payload_data.push({ "key": "Document-Mode", "value": document.documentMode });
+			if (window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth) payload_data.push({ "key": "Browser-Width", "value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth });
+			if (window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight) payload_data.push({ "key": "Browser-Height", "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight });
+			if (screen.width) payload_data.push({ "key": "Screen-Width", "value": screen.width });
+			if (screen.height) payload_data.push({ "key": "Screen-Height", "value": screen.height });
+			if (screen.colorDepth) payload_data.push({ "key": "Color-Depth", "value": screen.colorDepth });
+			if (navigator.appCodeName) payload_data.push({ "key": "Browser", "value": navigator.appCodeName });
+			if (navigator.appName) payload_data.push({ "key": "Browser-Name","value": navigator.appName });
+			if (navigator.appVersion) payload_data.push({ "key": "Browser-Version", "value": navigator.appVersion });
+			if (navigator.platform) payload_data.push({ "key": "Platform", "value": navigator.platform });
+
+			payload.data = payload_data;
+
+			var payload_serverVariables = [];
+			if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
+			if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
+
+			payload.serverVariables = payload_serverVariables;
+
+			return payload;
+		}
 
 		function confirmResponse(status, response) {
 			if (settings.debug) {
@@ -459,7 +427,7 @@
 				};
 
 				// Add payload to jsonData
-				jsonData = merge_objects(jsonData, payload);
+				jsonData = merge_objects(jsonData, getPayload());
 
 				xhr.send(JSON.stringify(jsonData));
 
@@ -514,7 +482,7 @@
 				};
 
 				// Add payload to jsonData
-				jsonData = merge_objects(jsonData, payload);
+				jsonData = merge_objects(jsonData, getPayload());
 
 				xhr.send(JSON.stringify(jsonData));
 
@@ -566,6 +534,13 @@
 		};
 		publicAPIs.fatal = function (msg, error) {
 			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+		};
+
+		publicAPIs.log = function (msg) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log function', msg);
+		};
+		publicAPIs.log = function (msg, error) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log function', msg, error);
 		};
 
 		/**
