@@ -419,7 +419,7 @@
 					"title": error.message,
 					"source": errorstack.fileName,
 					"severity": "Error",
-					"type": "JavaScript Error",
+					"type": "JavaScript " + error.error.name,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
 
@@ -471,7 +471,7 @@
 					"source": error ? ErrorStackParser().parse(error)[0].fileName : "JavaScript",
 					"detail": error ? error.stack : null,
 					"severity": type,
-					"type": type === "Error" ? "JavaScript Error" : null,
+					"type": error ? "JavaScript " + error.name : null,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
 
