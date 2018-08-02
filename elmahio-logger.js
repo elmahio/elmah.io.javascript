@@ -390,7 +390,7 @@
 			if ((api_key !== null && log_id !== null) || (paramsLength === 2 || paramsLength === 3)) {
 
 				// Priority for parameters
-				if (paramsLength === 2) {
+				if (paramsLength === 2 || paramsLength === 3) {
 					api_key = params['api_key'];
 					log_id = params['log_id'];
 				}
