@@ -351,10 +351,6 @@
 			if (screen.width) payload_data.push({ "key": "Screen-Width", "value": screen.width });
 			if (screen.height) payload_data.push({ "key": "Screen-Height", "value": screen.height });
 			if (screen.colorDepth) payload_data.push({ "key": "Color-Depth", "value": screen.colorDepth });
-			if (navigator.appCodeName) payload_data.push({ "key": "Browser", "value": navigator.appCodeName });
-			if (navigator.appName) payload_data.push({ "key": "Browser-Name","value": navigator.appName });
-			if (navigator.appVersion) payload_data.push({ "key": "Browser-Version", "value": navigator.appVersion });
-			if (navigator.platform) payload_data.push({ "key": "Platform", "value": navigator.platform });
 
 			payload.data = payload_data;
 
