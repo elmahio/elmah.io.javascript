@@ -19,13 +19,6 @@
 	//
 	// Shared Variables
 	//
-
-	var scriptFile = document.getElementsByTagName('script');
-	var scriptIndex = scriptFile.length - 1;
-	var myScript = scriptFile[scriptIndex];
-	var queryString = myScript.src.replace(/^[^\?]+\??/, '');
-	var params = parseQuery(queryString);
-	var paramsLength = objectLength(params);
 	var debugSettings = {
 		label: ' elmah.io debugger : On ',
 		labelCSS: 'background: #06a89c; color: #ffffff; display: inline-block; font-size: 14px;',
@@ -45,13 +38,6 @@
 	// Shared Methods
 	//
 
-	/*!
-	 * Merge two or more objects together.
-	 * (c) 2017 Chris Ferdinandi, MIT License, https://gomakethings.com
-	 * @param   {Boolean}  deep     If true, do a deep (or recursive) merge [optional]
-	 * @param   {Object}   objects  The objects to merge together
-	 * @returns {Object}            Merged values of defaults and options
-	 */
 	var extend = function () {
 
 		// Variables
@@ -387,13 +373,7 @@
 				error = errorLog,
 				queryParams = getSearchParameters();
 
-			if ((api_key !== null && log_id !== null) || (paramsLength === 2 || paramsLength === 3)) {
-
-				// Priority for parameters
-				if (paramsLength === 2 || paramsLength === 3) {
-					api_key = params['api_key'];
-					log_id = params['log_id'];
-				}
+			if ((api_key !== null && log_id !== null)) {
 
 				// get new XHR object
 				var xhr = new XMLHttpRequest();
@@ -441,13 +421,7 @@
 				message = messageLog,
 				queryParams = getSearchParameters();
 
-			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
-
-				// Priority for parameters
-				if (paramsLength === 2) {
-					api_key = params['api_key'];
-					log_id = params['log_id'];
-				}
+			if ((api_key !== null && log_id !== null)) {
 
 				// get new XHR object
 				var xhr = new XMLHttpRequest();
@@ -580,14 +554,6 @@
 	// Return the constructor
 	//
 
-	if (paramsLength === 3) {
-		if (params.hasOwnProperty('api_key') && params.hasOwnProperty('log_id') && params.hasOwnProperty('iife')) {
-			// Immediately-Invoked Function Expression (IIFE)
-			return new Constructor;
-		}
-	} else {
-		// UMD Constructor
-		return Constructor;
-	}
+	return Constructor;
 
 });
