@@ -1,6 +1,6 @@
 /*!
- * Elmah.io Javascript Logger
- * (c) 2018 Eduard-Dan Stanescu, MIT License, https://elmah.io
+ * elmah.io Javascript Logger
+ * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
