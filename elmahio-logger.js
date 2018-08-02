@@ -412,12 +412,13 @@
 					callback('error', xhr.statusText);
 				}
 
+				var errorstack = ErrorStackParser().parse(error)[0];
+
 				var jsonData = {
 					"application": "-",
 					"detail": error.error.stack,
 					"title": error.message,
-					"source": error.source,
-					"type": "string",
+					"source": errorstack.fileName,
 					"severity": "Error",
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
