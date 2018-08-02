@@ -415,7 +415,7 @@
 				var errorstack = ErrorStackParser().parse(error.error)[0];
 
 				var jsonData = {
-					"detail": error.error.stack, // FIXME: should this be error.stack?
+					"detail": error.error.stack,
 					"title": error.message,
 					"source": errorstack.fileName,
 					"severity": "Error",
