@@ -412,7 +412,7 @@
 					callback('error', xhr.statusText);
 				}
 
-				var errorstack = ErrorStackParser().parse(error)[0];
+				var errorstack = ErrorStackParser().parse(error.error)[0];
 
 				var jsonData = {
 					"detail": error.error.stack, // FIXME: should this be error.stack?
