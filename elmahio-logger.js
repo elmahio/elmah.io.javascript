@@ -471,7 +471,7 @@
 					"source": error ? ErrorStackParser().parse(error)[0].fileName : "JavaScript",
 					"detail": error ? error.stack : null,
 					"severity": type,
-					"type": type === "Error" ? type : null,
+					"type": type === "Error" ? "JavaScript Error" : null,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
 
