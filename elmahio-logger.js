@@ -27,7 +27,7 @@
 	var params = parseQuery(queryString);
 	var paramsLength = objectLength(params);
 	var debugSettings = {
-		label: ' Elmah.io debugger : On ',
+		label: ' elmah.io debugger : On ',
 		labelCSS: 'background: #06a89c; color: #ffffff; display: inline-block; font-size: 14px;',
 		successCSS: 'background: #d4edda; color: #155724; display: inline-block; font-size: 13px;',
 		errorCSS: 'background: #f8d7da; color: #721c24; display: inline-block; font-size: 13px;',
