@@ -387,7 +387,7 @@
 				error = errorLog,
 				queryParams = getSearchParameters();
 
-			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
+			if ((api_key !== null && log_id !== null) || (paramsLength === 2 || paramsLength === 3)) {
 
 				// Priority for parameters
 				if (paramsLength === 2) {
