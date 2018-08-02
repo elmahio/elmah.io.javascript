@@ -33,7 +33,6 @@ debug: true
 
 
 ### Manual logging
-*Works only with UMD Constructor !*
 ```
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
