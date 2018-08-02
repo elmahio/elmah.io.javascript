@@ -466,14 +466,12 @@
 					callback('error', xhr.statusText);
 				}
 
-				var errorstack = ErrorStackParser().parse(error)[0];
-
 				var jsonData = {
 					"title": message,
-					"source": errorstack.fileName,
-					"detail": error.stack,
+					"source": error ? ErrorStackParser().parse(error)[0].fileName : "JavaScript",
+					"detail": error ? error.stack : null,
 					"severity": type,
-					"type": "JavaScript Error",
+					"type": type === "Error" ? type : null,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
 
