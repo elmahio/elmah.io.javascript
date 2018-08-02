@@ -1,6 +1,6 @@
 /*!
- * Elmah.io Javascript Logger
- * (c) 2018 Eduard-Dan Stanescu, MIT License, https://elmah.io
+ * elmah.io Javascript Logger
+ * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
@@ -27,7 +27,7 @@
 	var params = parseQuery(queryString);
 	var paramsLength = objectLength(params);
 	var debugSettings = {
-		label: ' Elmah.io debugger : On ',
+		label: ' elmah.io debugger : On ',
 		labelCSS: 'background: #06a89c; color: #ffffff; display: inline-block; font-size: 14px;',
 		successCSS: 'background: #d4edda; color: #155724; display: inline-block; font-size: 13px;',
 		errorCSS: 'background: #f8d7da; color: #721c24; display: inline-block; font-size: 13px;',
@@ -351,10 +351,6 @@
 			if (screen.width) payload_data.push({ "key": "Screen-Width", "value": screen.width });
 			if (screen.height) payload_data.push({ "key": "Screen-Height", "value": screen.height });
 			if (screen.colorDepth) payload_data.push({ "key": "Color-Depth", "value": screen.colorDepth });
-			if (navigator.appCodeName) payload_data.push({ "key": "Browser", "value": navigator.appCodeName });
-			if (navigator.appName) payload_data.push({ "key": "Browser-Name","value": navigator.appName });
-			if (navigator.appVersion) payload_data.push({ "key": "Browser-Version", "value": navigator.appVersion });
-			if (navigator.platform) payload_data.push({ "key": "Platform", "value": navigator.platform });
 
 			payload.data = payload_data;
 
@@ -416,13 +412,14 @@
 					callback('error', xhr.statusText);
 				}
 
+				var errorstack = ErrorStackParser().parse(error.error)[0];
+
 				var jsonData = {
-					"application": "-",
 					"detail": error.error.stack,
 					"title": error.message,
-					"source": error.source,
-					"type": "string",
+					"source": errorstack.fileName,
 					"severity": "Error",
+					"type": "JavaScript " + error.error.name,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
 
@@ -469,15 +466,12 @@
 					callback('error', xhr.statusText);
 				}
 
-				var errorstack = ErrorStackParser().parse(error)[0];
-
 				var jsonData = {
-					"application": "-",
 					"title": message,
-					"source": errorstack.fileName,
-					"detail": error.stack,
-					"type": "string",
+					"source": error ? ErrorStackParser().parse(error)[0].fileName : "JavaScript",
+					"detail": error ? error.stack : null,
 					"severity": type,
+					"type": error ? "JavaScript " + error.name : null,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
 				};
 
