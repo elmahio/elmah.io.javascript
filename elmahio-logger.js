@@ -351,6 +351,7 @@
 			if (screen.width) payload_data.push({ "key": "Screen-Width", "value": screen.width });
 			if (screen.height) payload_data.push({ "key": "Screen-Height", "value": screen.height });
 			if (screen.colorDepth) payload_data.push({ "key": "Color-Depth", "value": screen.colorDepth });
+			payload_data.push({ "key": "X-ELMAHIO-SEARCH-isClientside", "value": "true" });
 
 			payload.data = payload_data;
 
