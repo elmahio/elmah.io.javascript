@@ -37,7 +37,8 @@
 	var defaults = {
 		apiKey: null,
 		logId: null,
-		debug: false
+		debug: false,
+		application: null
 	};
 
 
@@ -340,6 +341,7 @@
 		function getPayload() {
 			var payload = {
 				"url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+				"application": settings.application
 			};
 
 			var payload_data = [];

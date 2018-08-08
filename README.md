@@ -37,7 +37,8 @@ UMD Constructor with options
 new Elmahio({
   apiKey: null,
   logId: null,
-  debug: false
+  debug: false,
+  application: null
 });
 ```
 
@@ -48,6 +49,10 @@ debug: true
 ```
 ![debugging true - demo](debug-true.png)
 
+### Application name
+```
+application: 'MyApplication'
+```
 
 ### Manual logging
 *Works only with UMD Constructor !*
