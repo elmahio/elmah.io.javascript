@@ -133,7 +133,7 @@
 		return obj3;
 	}
 
-	function ErrorStackParser(StackFrame) {
+	function ErrorStackParser() {
 		'use strict';
 
 		var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
