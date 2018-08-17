@@ -4,6 +4,12 @@
 
 ### Initialization
 
+Immediately-Invoked Function Expression (IIFE)
+```
+<script src="elmahio-logger.js?apiKey=YOUR-API-KEY&logId=YOUR-LOG-ID" type="text/javascript"></script>
+```
+
+UMD Constructor with options
 ```
 <script src="elmahio-logger.js" type="text/javascript"></script>
 <script type="text/javascript">
@@ -38,6 +44,7 @@ application: 'MyApplication'
 ```
 
 ### Manual logging
+*Works only with UMD Constructor !*
 ```
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
