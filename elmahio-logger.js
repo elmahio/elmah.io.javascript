@@ -19,6 +19,14 @@
 	//
 	// Shared Variables
 	//
+
+	var scriptFile = document.getElementsByTagName('script');
+	var	scriptIndex = scriptFile.length - 1;
+	var	myScript = scriptFile[scriptIndex];
+	var	queryString = myScript.src.replace(/^[^\?]+\??/, '');
+	var	params = parseQuery(queryString);
+	var	paramsLength = objectLength(params);
+
 	var debugSettings = {
 		label: ' elmah.io debugger : On ',
 		labelCSS: 'background: #06a89c; color: #ffffff; display: inline-block; font-size: 14px;',
@@ -27,13 +35,13 @@
 		warningCSS: 'background: #fff3cd; color: #856404; display: inline-block; font-size: 13px;',
 		lightCSS: 'background: #e2e3e5; color: #383d41; display: inline-block; font-size: 13px;'
 	};
+
 	var defaults = {
 		apiKey: null,
 		logId: null,
 		debug: false,
 		application: null
 	};
-
 
 	//
 	// Shared Methods
@@ -378,7 +386,13 @@
 				error = errorLog,
 				queryParams = getSearchParameters();
 
-			if ((api_key !== null && log_id !== null)) {
+			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
+
+				// Priority for parameters
+				if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
+					api_key = params['apiKey'];
+					log_id = params['logId'];
+				}
 
 				// get new XHR object
 				var xhr = new XMLHttpRequest();
@@ -426,7 +440,13 @@
 				message = messageLog,
 				queryParams = getSearchParameters();
 
-			if ((api_key !== null && log_id !== null)) {
+			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
+
+				// Priority for parameters
+				if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
+					api_key = params['apiKey'];
+					log_id = params['logId'];
+				}
 
 				// get new XHR object
 				var xhr = new XMLHttpRequest();
@@ -561,6 +581,14 @@
 	// Return the constructor
 	//
 
-	return Constructor;
+	if (paramsLength) {
+		if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
+			// Immediately-Invoked Function Expression (IIFE)
+			return new Constructor;
+		}
+	} else {
+		// UMD Constructor
+		return Constructor;
+	}
 
 });
