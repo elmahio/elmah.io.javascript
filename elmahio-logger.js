@@ -133,7 +133,7 @@
 		return obj3;
 	}
 
-	function ErrorStackParser() {
+	function ErrorStackParser(settings) {
 		'use strict';
 
 		var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
@@ -148,8 +148,10 @@
 					return this.parseV8OrIE(error);
 				} else if (error.stack) {
 					return this.parseFFOrSafari(error);
+				} else if (settings.debug) {
+					console.log('%c Cannot parse given Error object', debugSettings.warningCSS);
 				} else {
-					throw new Error('Cannot parse given Error object');
+					return null;
 				}
 			},
 
@@ -395,12 +397,12 @@
 					callback('error', xhr.statusText);
 				}
 
-				var errorstack = ErrorStackParser().parse(error.error)[0];
+				var stack = ErrorStackParser(settings).parse(error.error);
 
 				var jsonData = {
 					"detail": error.error.stack,
 					"title": error.message,
-					"source": errorstack.fileName,
+					"source": stack && stack.length > 0 ? stack[0].fileName : null,
 					"severity": "Error",
 					"type": error.error.name,
 					"queryString": JSON.parse(JSON.stringify(queryParams))
@@ -443,9 +445,11 @@
 					callback('error', xhr.statusText);
 				}
 
+				var stack = error ? ErrorStackParser(settings).parse(error) : null;
+
 				var jsonData = {
 					"title": message,
-					"source": error ? ErrorStackParser().parse(error)[0].fileName : "JavaScript",
+					"source": stack && stack.length > 0 ? stack[0].fileName : null,
 					"detail": error ? error.stack : null,
 					"severity": type,
 					"type": error ? error.name : null,
