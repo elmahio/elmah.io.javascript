@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 1.0.1
+ * elmah.io Javascript Logger - version 1.0.2
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function (root, factory) {
@@ -21,11 +21,11 @@
 	//
 
 	var scriptFile = document.getElementsByTagName('script');
-	var scriptIndex = scriptFile.length - 1;
-	var myScript = scriptFile[scriptIndex];
-	var queryString = myScript.src.replace(/^[^\?]+\??/, '');
-	var params = parseQuery(queryString);
-	var paramsLength = objectLength(params);
+	var	scriptIndex = scriptFile.length - 1;
+	var	myScript = scriptFile[scriptIndex];
+	var	queryString = myScript.src.replace(/^[^\?]+\??/, '');
+	var	params = parseQuery(queryString);
+	var	paramsLength = objectLength(params);
 
 	var debugSettings = {
 		label: ' elmah.io debugger : On ',
@@ -346,6 +346,7 @@
 			if (document.documentMode) payload_data.push({ "key": "Document-Mode", "value": document.documentMode });
 			if (window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth) payload_data.push({ "key": "Browser-Width", "value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth });
 			if (window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight) payload_data.push({ "key": "Browser-Height", "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight });
+			if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) != undefined) payload_data.push({ "key": "Screen-Orientation", "value": ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type).split("-"))[0] });
 			if (screen.width) payload_data.push({ "key": "Screen-Width", "value": screen.width });
 			if (screen.height) payload_data.push({ "key": "Screen-Height", "value": screen.height });
 			if (screen.colorDepth) payload_data.push({ "key": "Color-Depth", "value": screen.colorDepth });
