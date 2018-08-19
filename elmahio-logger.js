@@ -582,11 +582,9 @@
 	// Return the constructor
 	//
 
-	if (paramsLength) {
-		if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
-			// Immediately-Invoked Function Expression (IIFE)
-			return new Constructor;
-		}
+	if (paramsLength && params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
+		// Immediately-Invoked Function Expression (IIFE)
+		return new Constructor;
 	} else {
 		// UMD Constructor
 		return Constructor;
