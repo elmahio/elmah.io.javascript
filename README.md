@@ -1,4 +1,4 @@
-# elmahio-logger
+# elmah.io.js
 ![version](https://img.shields.io/badge/Latest%20version-1.0.2-1abc9c.svg?style=flat-square)
 ![license](https://img.shields.io/hexpm/l/plug.svg?style=flat-square)
 
@@ -6,12 +6,12 @@
 
 Immediately-Invoked Function Expression (IIFE)
 ```
-<script src="elmahio-logger.js?apiKey=YOUR-API-KEY&logId=YOUR-LOG-ID" type="text/javascript"></script>
+<script src="elmahio.js?apiKey=YOUR-API-KEY&logId=YOUR-LOG-ID" type="text/javascript"></script>
 ```
 
 UMD Constructor with options
 ```
-<script src="elmahio-logger.js" type="text/javascript"></script>
+<script src="elmahio.js" type="text/javascript"></script>
 <script type="text/javascript">
   var log = new Elmahio({
     apiKey: 'YOUR-API-KEY',
