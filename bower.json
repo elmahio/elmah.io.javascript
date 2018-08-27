@@ -1,0 +1,23 @@
+{
+    "name": "elmah.io.js",
+    "description": "elmah.io javascript logger.",
+    "license": "Apache-2.0",
+    "homepage": "https://elmah.io",
+    "main": [
+        "src/elmahio.js"
+    ],
+    "devDependencies": {
+        "gulp": "^3.9.0",
+        "gulp-minify": "npm:gulp-minify#^3.1.0",
+        "gulp-sourcemaps": "npm:gulp-sourcemaps#^2.6.4",
+        "gulp-strip-comments": "npm:gulp-strip-comments#^2.5.2",
+        "gulp-beautify": "npm:gulp-beautify#^2.0.1"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "test",
+        "tests"
+    ]
+}
