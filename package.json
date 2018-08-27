@@ -1,0 +1,14 @@
+{
+  "name": "elmahio.js",
+  "description": "elmah.io javascript logger.",
+  "version": "1.0.2",
+  "repository": "https://github.com/elmahio/elmah.io.js",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-minify": "^3.1.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-strip-comments": "^2.5.2",
+    "gulp-beautify": "^2.0.1"
+  }
+}
