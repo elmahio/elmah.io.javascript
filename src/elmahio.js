@@ -40,7 +40,10 @@
 		apiKey: null,
 		logId: null,
 		debug: false,
-		application: null
+		application: null,
+		onMessage: null,
+		onError: null,
+		onFilter: null
 	};
 
 	//
@@ -385,6 +388,7 @@
 			var api_key = apiKey,
 				log_id = logId,
 				error = errorLog,
+				send = 1,
 				queryParams = getSearchParameters();
 
 			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
@@ -410,6 +414,11 @@
 
 				xhr.onerror = function (e) {
 					callback('error', xhr.statusText);
+
+					// onError callback
+					if (settings.onError !== null) {
+						settings.onError(xhr.status, xhr.statusText);
+					}
 				}
 
 				var stack = ErrorStackParser(settings).parse(error.error);
@@ -426,7 +435,21 @@
 				// Add payload to jsonData
 				jsonData = merge_objects(jsonData, getPayload());
 
-				xhr.send(JSON.stringify(jsonData));
+				// onFilter callback
+				if (settings.onFilter !== null) {
+					if (settings.onFilter(jsonData)) {
+						send = 0;
+					}
+				}
+
+				// onMessage callback
+				if (settings.onMessage !== null) {
+					settings.onMessage(jsonData);
+				}
+
+				if (send === 1) {
+					xhr.send(JSON.stringify(jsonData));
+				}
 
 			} else {
 				return console.log('Login api error');
@@ -439,6 +462,7 @@
 				type = logType,
 				error = errorLog,
 				message = messageLog,
+				send = 1,
 				queryParams = getSearchParameters();
 
 			if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
@@ -464,6 +488,11 @@
 
 				xhr.onerror = function (e) {
 					callback('error', xhr.statusText);
+
+					// onError callback
+					if (settings.onError !== null) {
+						settings.onError(xhr.status, xhr.statusText);
+					}
 				}
 
 				var stack = error ? ErrorStackParser(settings).parse(error) : null;
@@ -480,7 +509,21 @@
 				// Add payload to jsonData
 				jsonData = merge_objects(jsonData, getPayload());
 
-				xhr.send(JSON.stringify(jsonData));
+				// onFilter callback
+				if (settings.onFilter !== null) {
+					if (settings.onFilter(jsonData)) {
+						send = 0;
+					}
+				}
+
+				// onMessage callback
+				if (settings.onMessage !== null) {
+					settings.onMessage(jsonData);
+				}
+
+				if (send === 1) {
+					xhr.send(JSON.stringify(jsonData));
+				}
 
 			} else {
 				return console.log('Login api error');
