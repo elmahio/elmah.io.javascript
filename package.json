@@ -4,6 +4,16 @@
   "version": "3.0.0-beta1",
   "repository": "https://github.com/elmahio/elmah.io.js",
   "license": "Apache-2.0",
+  "keywords": [
+    "error logging",
+    "crash monitoring",
+    "cloud logging",
+    "error management",
+    "exception logging",
+    "exception",
+    "bug tracking"
+  ],
+  "homepage": "https://elmah.io",
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-beautify": "^2.0.1",
@@ -11,5 +21,6 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-strip-comments": "^2.5.2",
     "lodash": "~4.17.10"
-  }
+  },
+  "dependencies": {}
 }
