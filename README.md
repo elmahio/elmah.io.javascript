@@ -35,17 +35,6 @@ new Elmahio({
 });
 ```
 
-### Debugging
-```
-debug: true
-```
-![debugging true - demo](debug-true.png)
-
-### Application name
-```
-application: 'MyApplication'
-```
-
 ### Manual logging
 *Works only with UMD Constructor !*
 ```
