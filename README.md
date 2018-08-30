@@ -1,6 +1,7 @@
 # elmah.io.js
-![version](https://img.shields.io/badge/Latest%20version-1.0.2-1abc9c.svg?style=flat-square)
 ![license](https://img.shields.io/hexpm/l/plug.svg?style=flat-square)
+
+For the most recent documentation, visit [Logging to elmah.io from JavaScript](https://docs.elmah.io/logging-to-elmah-io-from-javascript/).
 
 ### Initialization
 
@@ -27,10 +28,12 @@ new Elmahio({
   apiKey: null,
   logId: null,
   debug: false,
-  application: null
+  application: nullm
+  onFilter: null,
+  onMessage: null,
+  onError: null
 });
 ```
-
 
 ### Debugging
 ```
@@ -70,8 +73,3 @@ log.fatal(msg);
 log.fatal(msg, error);
 ```
 Where __msg__ is a text string and __error__ is a [JavaScript Error Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
-
-##### Example:
-```
-log.information('A message here', new Error('A human-readable description of the error'));
-```
