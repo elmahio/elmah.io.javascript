@@ -475,8 +475,8 @@
     publicAPIs.fatal = function(msg, error) {
       sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
     };
-    publicAPIs.log = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', msg, error);
+    publicAPIs.log = function(error) {
+      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, error);
     };
     publicAPIs.init = function(options) {
       settings = extend(defaults, options || {});
