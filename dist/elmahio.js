@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.0.0
+ * elmah.io Javascript Logger - version 1.0.2
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -410,16 +410,20 @@
             settings.onError(xhr.status, xhr.statusText);
           }
         }
-        var stack = error ? ErrorStackParser(settings).parse(error) : null;
-        var jsonData = {
-          "title": message,
-          "source": stack && stack.length > 0 ? stack[0].fileName : null,
-          "detail": error ? error.stack : null,
-          "severity": type,
-          "type": error ? error.name : null,
-          "queryString": JSON.parse(JSON.stringify(queryParams))
-        };
-        jsonData = merge_objects(jsonData, getPayload());
+        if (type !== "Log") {
+          var stack = error ? ErrorStackParser(settings).parse(error) : null;
+          var jsonData = {
+            "title": message,
+            "source": stack && stack.length > 0 ? stack[0].fileName : null,
+            "detail": error ? error.stack : null,
+            "severity": type,
+            "type": error ? error.name : null,
+            "queryString": JSON.parse(JSON.stringify(queryParams))
+          };
+          jsonData = merge_objects(jsonData, getPayload());
+        } else {
+          jsonData = error;
+        }
         if (settings.onFilter !== null) {
           if (settings.onFilter(jsonData)) {
             send = 0;
@@ -471,11 +475,8 @@
     publicAPIs.fatal = function(msg, error) {
       sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
     };
-    publicAPIs.log = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log function', msg);
-    };
     publicAPIs.log = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log function', msg, error);
+      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', msg, error);
     };
     publicAPIs.init = function(options) {
       settings = extend(defaults, options || {});
