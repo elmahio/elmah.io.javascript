@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 1.0.2
+ * elmah.io Javascript Logger - version 3.0.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function (root, factory) {
@@ -583,8 +583,8 @@
 			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
 		};
 
-		publicAPIs.log = function (error) {
-			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, error);
+		publicAPIs.log = function (obj) {
+			sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
 		};
 
 		/**
