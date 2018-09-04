@@ -4,6 +4,7 @@
   "version": "3.0.0-beta1",
   "repository": "https://github.com/elmahio/elmah.io.js",
   "license": "Apache-2.0",
+  "main": "dist/elmahio.js",
   "keywords": [
     "error logging",
     "crash monitoring",
