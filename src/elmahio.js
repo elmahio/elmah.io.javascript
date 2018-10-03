@@ -41,7 +41,7 @@
         logId: null,
         debug: false,
         application: null,
-        onFilter: null
+        filter: null
     };
 
     //
@@ -427,9 +427,9 @@
                 // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
 
-                // onFilter callback
-                if (settings.onFilter !== null) {
-                    if (settings.onFilter(jsonData)) {
+                // filter callback
+                if (settings.filter !== null) {
+                    if (settings.filter(jsonData)) {
                         send = 0;
                     }
                 }
@@ -505,9 +505,9 @@
 
                 }
 
-                // onFilter callback
-                if (settings.onFilter !== null) {
-                    if (settings.onFilter(jsonData)) {
+                // filter callback
+                if (settings.filter !== null) {
+                    if (settings.filter(jsonData)) {
                         send = 0;
                     }
                 }
