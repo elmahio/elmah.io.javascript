@@ -41,8 +41,6 @@
         logId: null,
         debug: false,
         application: null,
-        onMessage: null,
-        onError: null,
         onFilter: null
     };
 
@@ -409,9 +407,9 @@
                 xhr.onerror = function (e) {
                     callback('error', xhr.statusText);
 
-                    // onError callback
-                    if (settings.onError !== null) {
-                        settings.onError(xhr.status, xhr.statusText);
+                    // on error event
+                    if (publicAPIs.e.error) {
+                        publicAPIs.emit('error', xhr.status, xhr.statusText);
                     }
                 }
 
@@ -436,9 +434,9 @@
                     }
                 }
 
-                // onMessage callback
-                if (settings.onMessage !== null) {
-                    settings.onMessage(jsonData);
+                // on message event
+                if (publicAPIs.e.message) {
+                    publicAPIs.emit('message', jsonData);
                 }
 
                 if (send === 1) {
@@ -483,9 +481,9 @@
                 xhr.onerror = function (e) {
                     callback('error', xhr.statusText);
 
-                    // onError callback
-                    if (settings.onError !== null) {
-                        settings.onError(xhr.status, xhr.statusText);
+                    // on error event
+                    if (publicAPIs.e.error) {
+                        publicAPIs.emit('error', xhr.status, xhr.statusText);
                     }
                 }
 
@@ -518,9 +516,9 @@
                     }
                 }
 
-                // onMessage callback
-                if (settings.onMessage !== null) {
-                    settings.onMessage(jsonData);
+                // on message event
+                if (publicAPIs.e.message) {
+                    publicAPIs.emit('message', jsonData);
                 }
 
                 if (send === 1) {
@@ -578,6 +576,30 @@
 
         publicAPIs.log = function (obj) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+        };
+
+        publicAPIs.on = function (name, callback, ctx) {
+            var e = this.e || (this.e = {});
+
+            (e[name] || (e[name] = [])).push({
+                fn: callback,
+                ctx: ctx
+            });
+
+            return this;
+        };
+
+        publicAPIs.emit = function (name) {
+            var data = [].slice.call(arguments, 1);
+            var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
+            var i = 0;
+            var len = evtArr.length;
+
+            for (i; i < len; i++) {
+                evtArr[i].fn.apply(evtArr[i].ctx, data);
+            }
+
+            return this;
         };
 
         publicAPIs.init = function (options) {
