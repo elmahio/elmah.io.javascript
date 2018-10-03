@@ -322,8 +322,10 @@
       if (settings.debug) {
         if (status === 'error') {
           console.log('%c \u2BC8 Error log: ' + '%c \u2715 Not created ', debugSettings.lightCSS, debugSettings.errorCSS);
-        } else {
+        } else if (status === 'success') {
           console.log('%c \u2BC8 Error log: ' + '%c \u2714 ' + response + ' at ' + new Date().toLocaleString() + ' ', debugSettings.lightCSS, debugSettings.successCSS);
+        } else {
+          console.log('%c \u2BC8 Error log: ' + '%c \u2715 Not created. Title should not be undefined, null or empty ! ', debugSettings.lightCSS, debugSettings.errorCSS);
         }
       }
     }
@@ -350,14 +352,12 @@
         };
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
-          if (publicAPIs.e.error) {
-            publicAPIs.emit('error', xhr.status, xhr.statusText);
-          }
+          publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         var stack = ErrorStackParser(settings).parse(error.error);
         var jsonData = {
           "detail": error.error.stack,
-          "title": error.message,
+          "title": error.message || 'Unspecified error',
           "source": stack && stack.length > 0 ? stack[0].fileName : null,
           "severity": "Error",
           "type": error.error.name,
@@ -369,9 +369,7 @@
             send = 0;
           }
         }
-        if (publicAPIs.e.message) {
-          publicAPIs.emit('message', jsonData);
-        }
+        publicAPIs.emit('message', jsonData);
         if (send === 1) {
           xhr.send(JSON.stringify(jsonData));
         }
@@ -404,9 +402,7 @@
         };
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
-          if (publicAPIs.e.error) {
-            publicAPIs.emit('error', xhr.status, xhr.statusText);
-          }
+          publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         if (type !== "Log") {
           var stack = error ? ErrorStackParser(settings).parse(error) : null;
@@ -427,11 +423,13 @@
             send = 0;
           }
         }
-        if (publicAPIs.e.message) {
-          publicAPIs.emit('message', jsonData);
-        }
+        publicAPIs.emit('message', jsonData);
         if (send === 1) {
-          xhr.send(JSON.stringify(jsonData));
+          if (jsonData.title) {
+            xhr.send(JSON.stringify(jsonData));
+          } else {
+            callback('missing-title', xhr.statusText);
+          }
         }
       } else {
         return console.log('Login api error');
