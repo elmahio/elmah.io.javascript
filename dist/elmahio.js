@@ -33,8 +33,6 @@
     logId: null,
     debug: false,
     application: null,
-    onMessage: null,
-    onError: null,
     onFilter: null
   };
   var extend = function() {
@@ -69,7 +67,7 @@
     var Pairs = query.split(/[;&]/);
     for (var i = 0; i < Pairs.length; i++) {
       var KeyVal = Pairs[i].split('=');
-      if (!KeyVal || KeyVal.length != 2) continue;
+      if (!KeyVal || KeyVal.length !== 2) continue;
       var key = unescape(KeyVal[0]);
       var val = unescape(KeyVal[1]);
       val = val.replace(/\+/g, ' ');
@@ -89,7 +87,7 @@
 
   function getSearchParameters() {
     var prmstr = window.location.search.substr(1);
-    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    return prmstr !== null && prmstr !== "" ? transformToAssocArray(prmstr) : {};
   }
 
   function transformToAssocArray(prmstr) {
@@ -107,11 +105,11 @@
 
   function merge_objects(obj1, obj2) {
     var obj3 = {};
-    for (var attrname in obj1) {
-      obj3[attrname] = obj1[attrname];
+    for (var attrname1 in obj1) {
+      obj3[attrname1] = obj1[attrname1];
     }
-    for (var attrname in obj2) {
-      obj3[attrname] = obj2[attrname];
+    for (var attrname2 in obj2) {
+      obj3[attrname2] = obj2[attrname2];
     }
     return obj3;
   }
@@ -286,7 +284,7 @@
         "key": "Browser-Height",
         "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
       });
-      if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) != undefined) payload_data.push({
+      if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) !== undefined) payload_data.push({
         "key": "Screen-Orientation",
         "value": ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type).split("-"))[0]
       });
@@ -352,8 +350,8 @@
         };
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
-          if (settings.onError !== null) {
-            settings.onError(xhr.status, xhr.statusText);
+          if (publicAPIs.e.error) {
+            publicAPIs.emit('error', xhr.status, xhr.statusText);
           }
         }
         var stack = ErrorStackParser(settings).parse(error.error);
@@ -371,8 +369,8 @@
             send = 0;
           }
         }
-        if (settings.onMessage !== null) {
-          settings.onMessage(jsonData);
+        if (publicAPIs.e.message) {
+          publicAPIs.emit('message', jsonData);
         }
         if (send === 1) {
           xhr.send(JSON.stringify(jsonData));
@@ -406,8 +404,8 @@
         };
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
-          if (settings.onError !== null) {
-            settings.onError(xhr.status, xhr.statusText);
+          if (publicAPIs.e.error) {
+            publicAPIs.emit('error', xhr.status, xhr.statusText);
           }
         }
         if (type !== "Log") {
@@ -429,8 +427,8 @@
             send = 0;
           }
         }
-        if (settings.onMessage !== null) {
-          settings.onMessage(jsonData);
+        if (publicAPIs.e.message) {
+          publicAPIs.emit('message', jsonData);
         }
         if (send === 1) {
           xhr.send(JSON.stringify(jsonData));
@@ -477,6 +475,24 @@
     };
     publicAPIs.log = function(obj) {
       sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+    };
+    publicAPIs.on = function(name, callback, ctx) {
+      var e = this.e || (this.e = {});
+      (e[name] || (e[name] = [])).push({
+        fn: callback,
+        ctx: ctx
+      });
+      return this;
+    };
+    publicAPIs.emit = function(name) {
+      var data = [].slice.call(arguments, 1);
+      var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
+      var i = 0;
+      var len = evtArr.length;
+      for (i; i < len; i++) {
+        evtArr[i].fn.apply(evtArr[i].ctx, data);
+      }
+      return this;
     };
     publicAPIs.init = function(options) {
       settings = extend(defaults, options || {});
