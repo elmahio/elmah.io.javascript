@@ -8,12 +8,6 @@ declare class Elmahio {
      */
     on(type: "message", handler: (msg: Elmahio.Message) => void): this;
     /**
-     * Subscribe to the 'filter' event to be able to ignore messages before they are logged to elmah.io.
-     * @param type Must be 'filter'
-     * @param handler The handler to invoke, before a new message is logged. If returning true from the callback, elmah.io will ignore a message.
-     */
-    on(type: "filter", handler: (msg: Elmahio.Message) => boolean): this;
-    /**
      * Subscribe to the 'error' event to get a callback when logging a message to elmah.io failed.
      * @param type Must be 'error'
      * @param handler The handler to invoke, after the logging failed.
@@ -81,6 +75,10 @@ declare namespace Elmahio {
          * If set to true, elmah.io.js will write a range of debug messages to the console.
          */
         debug?: boolean;
+        /**
+         * Subscribe to the 'filter' callback to be able to ignore messages before they are logged to elmah.io.
+         */
+        filter?: Function;
     }
 
     interface Item {
@@ -163,7 +161,7 @@ declare namespace Elmahio {
         data: Array<Item>;
     }
 }
-    
+
 export = Elmahio;
 
 export as namespace Elmahio;
