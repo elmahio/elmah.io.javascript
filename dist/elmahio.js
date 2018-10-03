@@ -33,7 +33,7 @@
     logId: null,
     debug: false,
     application: null,
-    onFilter: null
+    filter: null
   };
   var extend = function() {
     var extended = {};
@@ -364,8 +364,8 @@
           "queryString": JSON.parse(JSON.stringify(queryParams))
         };
         jsonData = merge_objects(jsonData, getPayload());
-        if (settings.onFilter !== null) {
-          if (settings.onFilter(jsonData)) {
+        if (settings.filter !== null) {
+          if (settings.filter(jsonData)) {
             send = 0;
           }
         }
@@ -418,8 +418,8 @@
         } else {
           jsonData = error;
         }
-        if (settings.onFilter !== null) {
-          if (settings.onFilter(jsonData)) {
+        if (settings.filter !== null) {
+          if (settings.filter(jsonData)) {
             send = 0;
           }
         }
