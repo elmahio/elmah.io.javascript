@@ -434,11 +434,11 @@
                     }
                 }
 
-                // on message event
-                publicAPIs.emit('message', jsonData);
-
                 if (send === 1) {
                     xhr.send(JSON.stringify(jsonData));
+
+                    // on message event
+                    publicAPIs.emit('message', jsonData);
                 }
 
             } else {
@@ -512,12 +512,12 @@
                     }
                 }
 
-                // on message event
-                publicAPIs.emit('message', jsonData);
-
                 if (send === 1) {
                     if (jsonData.title) {
                         xhr.send(JSON.stringify(jsonData));
+
+                        // on message event
+                        publicAPIs.emit('message', jsonData);
                     } else {
                         callback('missing-title', xhr.statusText);
                     }
