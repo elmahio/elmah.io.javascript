@@ -76,9 +76,9 @@ declare namespace Elmahio {
          */
         debug?: boolean;
         /**
-         * Subscribe to the 'filter' callback to be able to ignore messages before they are logged to elmah.io.
+         * Implement the 'filter' function to be able to ignore messages before they are logged to elmah.io.
          */
-        filter?: Function;
+        filter?(handler: (message: Elmahio.Message) => boolean): void;
     }
 
     interface Item {
