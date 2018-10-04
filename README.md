@@ -28,10 +28,8 @@ new Elmahio({
   apiKey: null,
   logId: null,
   debug: false,
-  application: nullm
-  onFilter: null,
-  onMessage: null,
-  onError: null
+  application: null,
+  filter: null
 });
 ```
 
