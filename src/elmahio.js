@@ -435,10 +435,11 @@
                 }
 
                 if (send === 1) {
-                    xhr.send(JSON.stringify(jsonData));
-
                     // on message event
                     publicAPIs.emit('message', jsonData);
+                    
+                    // send message
+                    xhr.send(JSON.stringify(jsonData));
                 }
 
             } else {
@@ -514,10 +515,13 @@
 
                 if (send === 1) {
                     if (jsonData.title) {
-                        xhr.send(JSON.stringify(jsonData));
-
+                        
                         // on message event
                         publicAPIs.emit('message', jsonData);
+                    
+                        // send message
+                        xhr.send(JSON.stringify(jsonData));
+
                     } else {
                         callback('missing-title', xhr.statusText);
                     }
