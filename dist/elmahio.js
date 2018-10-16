@@ -370,8 +370,8 @@
           }
         }
         if (send === 1) {
-          xhr.send(JSON.stringify(jsonData));
           publicAPIs.emit('message', jsonData);
+          xhr.send(JSON.stringify(jsonData));
         }
       } else {
         return console.log('Login api error');
@@ -425,8 +425,8 @@
         }
         if (send === 1) {
           if (jsonData.title) {
-            xhr.send(JSON.stringify(jsonData));
             publicAPIs.emit('message', jsonData);
+            xhr.send(JSON.stringify(jsonData));
           } else {
             callback('missing-title', xhr.statusText);
           }
