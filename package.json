@@ -1,11 +1,11 @@
 {
   "name": "elmah.io.js",
   "description": "elmah.io javascript logger.",
-  "version": "3.0.0-beta1.1",
+  "version": "3.0.0-beta2",
   "repository": "https://github.com/elmahio/elmah.io.js",
   "license": "Apache-2.0",
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "./elmahio.js",
+  "types": "./elmahio.d.ts",
   "keywords": [
     "error logging",
     "crash monitoring",
