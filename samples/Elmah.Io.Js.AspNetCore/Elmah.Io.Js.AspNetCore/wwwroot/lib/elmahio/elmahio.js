@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.0.0-beta1
+ * elmah.io Javascript Logger - version 3.0.0-beta2
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -33,9 +33,7 @@
     logId: null,
     debug: false,
     application: null,
-    onMessage: null,
-    onError: null,
-    onFilter: null
+    filter: null
   };
   var extend = function() {
     var extended = {};
@@ -69,7 +67,7 @@
     var Pairs = query.split(/[;&]/);
     for (var i = 0; i < Pairs.length; i++) {
       var KeyVal = Pairs[i].split('=');
-      if (!KeyVal || KeyVal.length != 2) continue;
+      if (!KeyVal || KeyVal.length !== 2) continue;
       var key = unescape(KeyVal[0]);
       var val = unescape(KeyVal[1]);
       val = val.replace(/\+/g, ' ');
@@ -89,7 +87,7 @@
 
   function getSearchParameters() {
     var prmstr = window.location.search.substr(1);
-    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+    return prmstr !== null && prmstr !== "" ? transformToAssocArray(prmstr) : {};
   }
 
   function transformToAssocArray(prmstr) {
@@ -107,11 +105,11 @@
 
   function merge_objects(obj1, obj2) {
     var obj3 = {};
-    for (var attrname in obj1) {
-      obj3[attrname] = obj1[attrname];
+    for (var attrname1 in obj1) {
+      obj3[attrname1] = obj1[attrname1];
     }
-    for (var attrname in obj2) {
-      obj3[attrname] = obj2[attrname];
+    for (var attrname2 in obj2) {
+      obj3[attrname2] = obj2[attrname2];
     }
     return obj3;
   }
@@ -266,7 +264,7 @@
 
     function getPayload() {
       var payload = {
-        "url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+        "url": document.location.pathname || '/',
         "application": settings.application
       };
       var payload_data = [];
@@ -286,7 +284,7 @@
         "key": "Browser-Height",
         "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
       });
-      if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) != undefined) payload_data.push({
+      if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) !== undefined) payload_data.push({
         "key": "Screen-Orientation",
         "value": ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type).split("-"))[0]
       });
@@ -316,6 +314,14 @@
         "key": "Referer",
         "value": document.referrer
       });
+      if (document.location.protocol === "https:") payload_serverVariables.push({
+        "key": "HTTPS",
+        "value": 'on'
+      });
+      if (document.location.hostname) payload_serverVariables.push({
+        "key": "Host",
+        "value": document.location.hostname
+      });
       payload.serverVariables = payload_serverVariables;
       return payload;
     }
@@ -324,8 +330,10 @@
       if (settings.debug) {
         if (status === 'error') {
           console.log('%c \u2BC8 Error log: ' + '%c \u2715 Not created ', debugSettings.lightCSS, debugSettings.errorCSS);
-        } else {
+        } else if (status === 'success') {
           console.log('%c \u2BC8 Error log: ' + '%c \u2714 ' + response + ' at ' + new Date().toLocaleString() + ' ', debugSettings.lightCSS, debugSettings.successCSS);
+        } else {
+          console.log('%c \u2BC8 Error log: ' + '%c \u2715 Not created. Title should not be undefined, null or empty ! ', debugSettings.lightCSS, debugSettings.errorCSS);
         }
       }
     }
@@ -352,29 +360,25 @@
         };
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
-          if (settings.onError !== null) {
-            settings.onError(xhr.status, xhr.statusText);
-          }
+          publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         var stack = ErrorStackParser(settings).parse(error.error);
         var jsonData = {
           "detail": error.error.stack,
-          "title": error.message,
+          "title": error.message || 'Unspecified error',
           "source": stack && stack.length > 0 ? stack[0].fileName : null,
           "severity": "Error",
           "type": error.error.name,
           "queryString": JSON.parse(JSON.stringify(queryParams))
         };
         jsonData = merge_objects(jsonData, getPayload());
-        if (settings.onFilter !== null) {
-          if (settings.onFilter(jsonData)) {
+        if (settings.filter !== null) {
+          if (settings.filter(jsonData)) {
             send = 0;
           }
         }
-        if (settings.onMessage !== null) {
-          settings.onMessage(jsonData);
-        }
         if (send === 1) {
+          publicAPIs.emit('message', jsonData);
           xhr.send(JSON.stringify(jsonData));
         }
       } else {
@@ -406,9 +410,7 @@
         };
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
-          if (settings.onError !== null) {
-            settings.onError(xhr.status, xhr.statusText);
-          }
+          publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         if (type !== "Log") {
           var stack = error ? ErrorStackParser(settings).parse(error) : null;
@@ -424,16 +426,18 @@
         } else {
           jsonData = error;
         }
-        if (settings.onFilter !== null) {
-          if (settings.onFilter(jsonData)) {
+        if (settings.filter !== null) {
+          if (settings.filter(jsonData)) {
             send = 0;
           }
         }
-        if (settings.onMessage !== null) {
-          settings.onMessage(jsonData);
-        }
         if (send === 1) {
-          xhr.send(JSON.stringify(jsonData));
+          if (jsonData.title) {
+            publicAPIs.emit('message', jsonData);
+            xhr.send(JSON.stringify(jsonData));
+          } else {
+            callback('missing-title', xhr.statusText);
+          }
         }
       } else {
         return console.log('Login api error');
@@ -477,6 +481,24 @@
     };
     publicAPIs.log = function(obj) {
       sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+    };
+    publicAPIs.on = function(name, callback, ctx) {
+      var e = this.e || (this.e = {});
+      (e[name] || (e[name] = [])).push({
+        fn: callback,
+        ctx: ctx
+      });
+      return this;
+    };
+    publicAPIs.emit = function(name) {
+      var data = [].slice.call(arguments, 1);
+      var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
+      var i = 0;
+      var len = evtArr.length;
+      for (i; i < len; i++) {
+        evtArr[i].fn.apply(evtArr[i].ctx, data);
+      }
+      return this;
     };
     publicAPIs.init = function(options) {
       settings = extend(defaults, options || {});
