@@ -5,7 +5,7 @@
   "repository": "https://github.com/elmahio/elmah.io.js",
   "license": "Apache-2.0",
   "main": "dist/elmahio.js",
-  "types": "elmahio.d.ts",
+  "types": "typescript/elmahio.d.ts",
   "keywords": [
     "error logging",
     "crash monitoring",
