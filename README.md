@@ -60,3 +60,7 @@ log.fatal(msg);
 log.fatal(msg, error);
 ```
 Where __msg__ is a text string and __error__ is a [JavaScript Error Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
+
+### Acknowledgments
+
+* [Rojan Gharibpour](https://github.com/Sojaner)
