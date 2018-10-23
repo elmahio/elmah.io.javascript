@@ -264,7 +264,7 @@
 
     function getPayload() {
       var payload = {
-        "url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+        "url": document.location.pathname || '/',
         "application": settings.application
       };
       var payload_data = [];
@@ -313,6 +313,14 @@
       if (document.referrer) payload_serverVariables.push({
         "key": "Referer",
         "value": document.referrer
+      });
+      if (document.location.protocol === "https:") payload_serverVariables.push({
+        "key": "HTTPS",
+        "value": 'on'
+      });
+      if (document.location.hostname) payload_serverVariables.push({
+        "key": "Host",
+        "value": document.location.hostname
       });
       payload.serverVariables = payload_serverVariables;
       return payload;

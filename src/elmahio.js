@@ -337,7 +337,7 @@
 
         function getPayload() {
             var payload = {
-                "url": [document.location.protocol, '//', document.location.host, document.location.pathname, document.location.hash].join('') || '/',
+                "url": document.location.pathname || '/',
                 "application": settings.application
             };
 
@@ -358,6 +358,8 @@
             var payload_serverVariables = [];
             if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
             if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
+            if (document.location.protocol === "https:") payload_serverVariables.push({ "key": "HTTPS", "value": 'on' });
+            if (document.location.hostname) payload_serverVariables.push({ "key": "Host", "value": document.location.hostname });
 
             payload.serverVariables = payload_serverVariables;
 
@@ -437,7 +439,7 @@
                 if (send === 1) {
                     // on message event
                     publicAPIs.emit('message', jsonData);
-                    
+
                     // send message
                     xhr.send(JSON.stringify(jsonData));
                 }
@@ -515,10 +517,10 @@
 
                 if (send === 1) {
                     if (jsonData.title) {
-                        
+
                         // on message event
                         publicAPIs.emit('message', jsonData);
-                    
+
                         // send message
                         xhr.send(JSON.stringify(jsonData));
 
