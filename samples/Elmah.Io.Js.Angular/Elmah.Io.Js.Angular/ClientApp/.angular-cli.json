@@ -22,7 +22,6 @@
         "../node_modules/bootstrap/dist/css/bootstrap.min.css"
       ],
       "scripts": [
-        "../node_modules/elmah.io.js/dist/elmahio.min.js"
       ],
       "environmentSource": "environments/environment.ts",
       "environments": {
