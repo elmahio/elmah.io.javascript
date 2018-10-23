@@ -17,5 +17,6 @@
     <file src="dist\elmahio.js.map" target="content\scripts\elmahio.js.map" />
     <file src="dist\elmahio.min.js" target="content\scripts\elmahio.min.js" />
     <file src="dist\elmahio.min.js.map" target="content\scripts\elmahio.min.js.map" />
+    <file src="typescript\elmahio.d.ts" target="content\scripts\typings\elmah.io.js\elmahio.d.ts" />
   </files>
 </package>
