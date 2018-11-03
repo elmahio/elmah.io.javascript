@@ -342,7 +342,8 @@
         log_id = logId,
         error = errorLog,
         send = 1,
-        queryParams = getSearchParameters();
+        queryParams = getSearchParameters(),
+        stack = error.error ? ErrorStackParser(settings).parse(error.error) : '';
       if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
         if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
           api_key = params['apiKey'];
@@ -362,13 +363,12 @@
           callback('error', xhr.statusText);
           publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
-        var stack = ErrorStackParser(settings).parse(error.error);
         var jsonData = {
-          "detail": error.error.stack,
+          "detail": error.error ? error.error.stack : null,
           "title": error.message || 'Unspecified error',
           "source": stack && stack.length > 0 ? stack[0].fileName : null,
           "severity": "Error",
-          "type": error.error.name,
+          "type": error.error ? error.error.name : null,
           "queryString": JSON.parse(JSON.stringify(queryParams))
         };
         jsonData = merge_objects(jsonData, getPayload());
