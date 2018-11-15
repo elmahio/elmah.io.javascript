@@ -221,9 +221,9 @@
         }
 
         function stackGPS(error, xhr, jsonData) {
-        	var errorStack = error.stack.toString().split("\n")[0];
+        	var errorStack = error.toString().split("\n")[0];
         	var gps = new StackTraceGPS();
-            var promise = new Promise(function(resolve) {
+                var promise = new Promise(function(resolve) {
                 var stackframes = ErrorStackParser.parse(error);
                 resolve(Promise.all(stackframes.map(function(sf) {
                     return new Promise(function(resolve) {
