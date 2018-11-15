@@ -400,7 +400,7 @@
                         // on message event
                         publicAPIs.emit('message', jsonData);
 
-                        if (error && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+                        if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
 	    					// send message trying to pinpoint stackframes
                     		stackGPS(error, xhr, jsonData);
 		                } else {
