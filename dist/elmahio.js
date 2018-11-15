@@ -1588,29 +1588,27 @@ var SourceMap = function(e) {
     }
 
     function stackGPS(error, xhr, jsonData) {
-      var errorStack = error.stack;
-      var stackframes = ErrorStackParser.parse({
-        stack: errorStack
-      });
+      var errorStack = error.stack.toString().split("\n")[0];
       var gps = new StackTraceGPS();
-      var newFrames = new Array(stackframes.length);
-      var frameResolved = 0;
-      stackframes.forEach(function(stackFrame, i) {
-        gps.pinpoint(stackFrame).then(function(newFrame) {
-          newFrames[i] = newFrame;
-          newFrames[i].source = newFrame.toString();
-          frameResolved++;
-          if (frameResolved === stackframes.length) {
-            newFrames.unshift(errorStack.toString().split("\n")[0]);
-            jsonData.detail = newFrames.join("\n");
-            xhr.send(JSON.stringify(jsonData));
-          }
-        }, function(err) {
-          frameResolved++;
-          if (frameResolved === stackframes.length) {
-            xhr.send(JSON.stringify(jsonData));
-          }
-        })
+      var promise = new Promise(function(resolve) {
+        var stackframes = ErrorStackParser.parse(error);
+        resolve(Promise.all(stackframes.map(function(sf) {
+          return new Promise(function(resolve) {
+            function resolveOriginal() {
+              resolve(sf);
+            }
+            gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
+          });
+        })));
+      });
+      promise.then(function(newFrames) {
+        newFrames.forEach(function(stackFrame, i) {
+          var stackString = '    at ' + stackFrame.functionName + ' (' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+          newFrames[i] = stackString;
+        });
+        newFrames.unshift(errorStack);
+        jsonData.detail = newFrames.join("\n");
+        xhr.send(JSON.stringify(jsonData));
       });
     }
     var sendPayload = function(apiKey, logId, callback, errorLog) {
