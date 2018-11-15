@@ -1588,7 +1588,7 @@ var SourceMap = function(e) {
     }
 
     function stackGPS(error, xhr, jsonData) {
-      var errorStack = error.stack.toString().split("\n")[0];
+      var errorStack = error.toString().split("\n")[0];
       var gps = new StackTraceGPS();
       var promise = new Promise(function(resolve) {
         var stackframes = ErrorStackParser.parse(error);
@@ -1603,7 +1603,12 @@ var SourceMap = function(e) {
       });
       promise.then(function(newFrames) {
         newFrames.forEach(function(stackFrame, i) {
-          var stackString = '    at ' + stackFrame.functionName + ' (' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+          if (stackFrame.functionName) {
+            var fn = stackFrame.functionName + ' ';
+          } else {
+            var fn = '';
+          }
+          var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
           newFrames[i] = stackString;
         });
         newFrames.unshift(errorStack);
@@ -1712,7 +1717,7 @@ var SourceMap = function(e) {
         if (send === 1) {
           if (jsonData.title) {
             publicAPIs.emit('message', jsonData);
-            if (error && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+            if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               stackGPS(error, xhr, jsonData);
             } else {
               xhr.send(JSON.stringify(jsonData));
