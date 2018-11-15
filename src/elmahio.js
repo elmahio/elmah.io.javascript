@@ -237,7 +237,12 @@
 
             promise.then(function(newFrames){
             	newFrames.forEach(function(stackFrame, i){
-            		var stackString = '    at ' + stackFrame.functionName + ' (' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+			if(stackFrame.functionName) {
+            			var fn = stackFrame.functionName + ' ';
+            		} else {
+            			var fn = '';
+            		}
+            		var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
             		newFrames[i] = stackString;
             	});
             	newFrames.unshift(errorStack);
