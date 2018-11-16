@@ -6,12 +6,12 @@ For the most recent documentation, visit [Logging to elmah.io from JavaScript](h
 ### Initialization
 
 Immediately-Invoked Function Expression (IIFE)
-```
+```html
 <script src="elmahio.js?apiKey=YOUR-API-KEY&logId=YOUR-LOG-ID" type="text/javascript"></script>
 ```
 
 UMD Constructor with options
-```
+```html
 <script src="elmahio.js" type="text/javascript"></script>
 <script type="text/javascript">
   var log = new Elmahio({
@@ -23,7 +23,7 @@ UMD Constructor with options
 
 
 ### Default options
-```
+```javascript
 new Elmahio({
   apiKey: null,
   logId: null,
@@ -35,7 +35,7 @@ new Elmahio({
 
 ### Manual logging
 *Works only with UMD Constructor !*
-```
+```javascript
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
   logId: 'YOUR-LOG-ID',
