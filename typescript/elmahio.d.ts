@@ -72,7 +72,7 @@ declare namespace Elmahio {
          */
         application?: string;
         /**
-         * If set to true, elmah.io.js will write a range of debug messages to the console.
+         * If set to true, elmah.io.javascript will write a range of debug messages to the console.
          */
         debug?: boolean;
         /**

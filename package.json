@@ -1,8 +1,8 @@
 {
-  "name": "elmah.io.js",
+  "name": "elmah.io.javascript",
   "description": "elmah.io javascript logger.",
   "version": "3.0.0-beta2",
-  "repository": "https://github.com/elmahio/elmah.io.js",
+  "repository": "https://github.com/elmahio/elmah.io.javascript",
   "license": "Apache-2.0",
   "main": "dist/elmahio.js",
   "types": "typescript/elmahio.d.ts",

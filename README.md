@@ -1,4 +1,4 @@
-# elmah.io.js
+# elmah.io.javascript
 ![license](https://img.shields.io/hexpm/l/plug.svg?style=flat-square)
 
 For the most recent documentation, visit [Logging to elmah.io from JavaScript](https://docs.elmah.io/logging-to-elmah-io-from-javascript/).

@@ -4,11 +4,11 @@
     <version>3.0.0-beta2</version>
     <authors>elmah.io</authors>
     <owners>elmah.io</owners>
-    <id>elmah.io.js</id>
-    <title>elmah.io.js</title>
+    <id>elmah.io.javascript</id>
+    <title>elmah.io.javascript</title>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>elmah.io JavaScript logger.</description>
-    <projectUrl>https://github.com/elmahio/elmah.io.js</projectUrl>
+    <projectUrl>https://github.com/elmahio/elmah.io.javascript</projectUrl>
     <iconUrl>https://secure.gravatar.com/avatar/5c4cb3646528821117abde6d2d5ee22d?s=64</iconUrl>
     <tags>Error Exception Reporting Management Logging ELMAH Diagnostics Tracing JavaScript</tags>
   </metadata>
@@ -17,6 +17,6 @@
     <file src="dist\elmahio.js.map" target="content\scripts\elmahio.js.map" />
     <file src="dist\elmahio.min.js" target="content\scripts\elmahio.min.js" />
     <file src="dist\elmahio.min.js.map" target="content\scripts\elmahio.min.js.map" />
-    <file src="typescript\elmahio.d.ts" target="content\scripts\typings\elmah.io.js\elmahio.d.ts" />
+    <file src="typescript\elmahio.d.ts" target="content\scripts\typings\elmah.io.javascript\elmahio.d.ts" />
   </files>
 </package>
