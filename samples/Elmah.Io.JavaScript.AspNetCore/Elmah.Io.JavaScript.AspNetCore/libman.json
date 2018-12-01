@@ -4,7 +4,7 @@
   "libraries": [
     {
       "provider": "filesystem",
-      "library": "https://raw.githubusercontent.com/elmahio/elmah.io.js/3.0.0-beta2/dist/elmahio.js",
+      "library": "https://raw.githubusercontent.com/elmahio/elmah.io.javascript/3.0.0-beta3/dist/elmahio.js",
       "destination": "wwwroot/lib/elmahio"
     },
   ]

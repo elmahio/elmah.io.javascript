@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import * as Elmahio from 'elmah.io.js';
+import * as Elmahio from 'elmah.io.javascript';
 
 @Component({
   selector: 'app-root',
@@ -16,5 +16,9 @@ export class AppComponent {
     });
 
     logger.information('elmah.io.javascript Angular/Webpack Sample Project started!');
+  }
+
+  public generateError() {
+    throw new Error("Error from Angular Webpack app");
   }
 }

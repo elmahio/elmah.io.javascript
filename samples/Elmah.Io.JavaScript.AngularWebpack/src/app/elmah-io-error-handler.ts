@@ -1,6 +1,6 @@
 import {ErrorHandler} from '@angular/core';
 
-import * as Elmahio from 'elmah.io.js';
+import * as Elmahio from 'elmah.io.javascript';
 
 export class ElmahIoErrorHandler implements ErrorHandler {
   logger: any;

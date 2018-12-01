@@ -10,7 +10,7 @@ import { HomeComponent } from './home/home.component';
 import { CounterComponent } from './counter/counter.component';
 import { FetchDataComponent } from './fetch-data/fetch-data.component';
 
-import * as Elmahio from 'elmah.io.js';
+import * as Elmahio from 'elmah.io.javascript';
 
 class ElmahIoErrorHandler implements ErrorHandler {
   logger: any;

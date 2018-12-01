@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import * as Elmahio from 'elmah.io.js';
+import * as Elmahio from 'elmah.io.javascript';
 
 @Component({
   selector: 'app-root',
