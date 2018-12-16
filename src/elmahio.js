@@ -1052,7 +1052,13 @@
                     'error': error
                 }
 
-                sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+                if (errorLog.error && errorLog.colno !== 0 && errorLog.lineno !== 0 && errorLog.source !== "" && errorLog.message !== "Script error.") {
+                    sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+                } else {
+                    if (settings.debug) {
+                        console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
+                    }
+                }
 
                 return false;
             }
