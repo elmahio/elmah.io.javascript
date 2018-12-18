@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.0.0-beta3
+ * elmah.io Javascript Logger - version 3.0.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1219,6 +1219,12 @@
         send = 1,
         queryParams = getSearchParameters(),
         stack = error.error ? ErrorStackParser.parse(error.error) : '';
+      if (error && error.colno === 0 && error.lineno === 0 && stack === '' && error.message && error.message === "Script error.") {
+        if (settings.debug) {
+          console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
+        }
+        return;
+      }
       if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
         if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
           api_key = params['apiKey'];
