@@ -743,7 +743,6 @@
             payload.data = payload_data;
 
             var payload_serverVariables = [];
-
             if (navigator.language) payload_serverVariables.push({ "key": "User-Language", "value": navigator.language });
             if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
             if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
@@ -810,12 +809,12 @@
                 stack = error.error ? ErrorStackParser.parse(error.error) : '';
 
             // Ignoring error from an external script
-            if (error && error.colno === 0 && error.lineno === 0 && !stack && stack === '' && error.message && error.message === "Script error.") {
-              if (settings.debug) {
-                  console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
-              }
-              return;
-            }
+            if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && error.message === "Script error.") {
+			    if (settings.debug) {
+			        console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
+			    }
+			    return;
+			}
 
             if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
 
