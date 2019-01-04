@@ -1,0 +1,22 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <version>3.0.0</version>
+    <authors>elmah.io</authors>
+    <owners>elmah.io</owners>
+    <id>elmah.io.javascript</id>
+    <title>elmah.io.javascript</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>elmah.io JavaScript logger.</description>
+    <projectUrl>https://github.com/elmahio/elmah.io.javascript</projectUrl>
+    <iconUrl>https://secure.gravatar.com/avatar/5c4cb3646528821117abde6d2d5ee22d?s=64</iconUrl>
+    <tags>Error Exception Reporting Management Logging ELMAH Diagnostics Tracing JavaScript</tags>
+  </metadata>
+  <files>
+    <file src="dist\elmahio.js" target="content\scripts\elmahio.js" />
+    <file src="dist\elmahio.js.map" target="content\scripts\elmahio.js.map" />
+    <file src="dist\elmahio.min.js" target="content\scripts\elmahio.min.js" />
+    <file src="dist\elmahio.min.js.map" target="content\scripts\elmahio.min.js.map" />
+    <file src="typescript\elmahio.d.ts" target="content\scripts\typings\elmah.io.javascript\elmahio.d.ts" />
+  </files>
+</package>

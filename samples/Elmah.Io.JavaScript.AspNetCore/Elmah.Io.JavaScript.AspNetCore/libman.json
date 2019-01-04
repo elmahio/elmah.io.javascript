@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "provider": "filesystem",
+      "library": "https://raw.githubusercontent.com/elmahio/elmah.io.javascript/3.0.0/dist/elmahio.js",
+      "destination": "wwwroot/lib/elmahio"
+    },
+  ]
+}

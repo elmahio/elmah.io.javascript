@@ -1,4 +1,4 @@
-# elmah.io.js
+# elmah.io.javascript
 ![license](https://img.shields.io/hexpm/l/plug.svg?style=flat-square)
 
 For the most recent documentation, visit [Logging to elmah.io from JavaScript](https://docs.elmah.io/logging-to-elmah-io-from-javascript/).
@@ -6,12 +6,12 @@ For the most recent documentation, visit [Logging to elmah.io from JavaScript](h
 ### Initialization
 
 Immediately-Invoked Function Expression (IIFE)
-```
+```html
 <script src="elmahio.js?apiKey=YOUR-API-KEY&logId=YOUR-LOG-ID" type="text/javascript"></script>
 ```
 
 UMD Constructor with options
-```
+```html
 <script src="elmahio.js" type="text/javascript"></script>
 <script type="text/javascript">
   var log = new Elmahio({
@@ -23,7 +23,7 @@ UMD Constructor with options
 
 
 ### Default options
-```
+```javascript
 new Elmahio({
   apiKey: null,
   logId: null,
@@ -35,7 +35,7 @@ new Elmahio({
 
 ### Manual logging
 *Works only with UMD Constructor !*
-```
+```javascript
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
   logId: 'YOUR-LOG-ID',
@@ -60,3 +60,7 @@ log.fatal(msg);
 log.fatal(msg, error);
 ```
 Where __msg__ is a text string and __error__ is a [JavaScript Error Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
+
+### Acknowledgments
+
+* [Rojan Gharibpour](https://github.com/Sojaner)

@@ -2,7 +2,6 @@
  * elmah.io Javascript Logger - version 3.0.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
-
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         define([], function () {
@@ -14,21 +13,18 @@
         root.Elmahio = factory(root);
     }
 })(typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : this, function (window) {
-
     'use strict';
-
-    //
-    // ==== STACKFRAME ====
-    //
-
     var StackFrame = (function () {
         "use strict";
+
         function _isNumber(n) {
             return !isNaN(parseFloat(n)) && isFinite(n);
         }
+
         function _capitalize(str) {
             return str.charAt(0).toUpperCase() + str.substring(1);
         }
+
         function _getter(p) {
             return function () {
                 return this[p];
@@ -39,6 +35,7 @@
         var stringProps = ["fileName", "functionName", "source"];
         var arrayProps = ["args"];
         var props = booleanProps.concat(numericProps, stringProps, arrayProps);
+
         function StackFrame(obj) {
             if (obj instanceof Object) {
                 for (var i = 0; i < props.length; i++) {
@@ -128,23 +125,12 @@
         }
         return StackFrame;
     })();
-
-    //
-    // ==== ERROR STACK PARSER ====
-    //
-
     var ErrorStackParser = (function () {
         "use strict";
         var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
         var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+\:\d+|\(native\))/m;
         var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code\])?$/;
         return {
-            /**
-                 * Given an Error object, extract the most information from it.
-                 *
-                 * @param {Error} error object
-                 * @return {Array} of StackFrames
-                 */
             parse: function ErrorStackParser$$parse(error) {
                 if (typeof error.stacktrace !== "undefined" || typeof error["opera#sourceloc"] !== "undefined") {
                     return this.parseOpera(error);
@@ -156,9 +142,7 @@
                     throw new Error("Cannot parse given Error object");
                 }
             },
-            // Separate line and column numbers from a string of the form: (URI:Line:Column)
             extractLocation: function ErrorStackParser$$extractLocation(urlLike) {
-                // Fail-fast but return locations like "(native)"
                 if (urlLike.indexOf(":") === -1) {
                     return [urlLike];
                 }
@@ -172,7 +156,6 @@
                 }, this);
                 return filtered.map(function (line) {
                     if (line.indexOf("(eval ") > -1) {
-                        // Throw away eval information until we implement stacktrace.js/stackframe#8
                         line = line.replace(/eval code/g, "eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g, "");
                     }
                     var tokens = line.replace(/^\s+/, "").replace(/\(eval code/g, "(").split(/\s+/).slice(1);
@@ -193,12 +176,10 @@
                     return !line.match(SAFARI_NATIVE_CODE_REGEXP);
                 }, this);
                 return filtered.map(function (line) {
-                    // Throw away eval information until we implement stacktrace.js/stackframe#8
                     if (line.indexOf(" > eval") > -1) {
                         line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g, ":$1");
                     }
                     if (line.indexOf("@") === -1 && line.indexOf(":") === -1) {
-                        // Safari eval frames only have function names and nothing else
                         return new StackFrame({
                             functionName: line
                         });
@@ -259,7 +240,6 @@
                 }
                 return result;
             },
-            // Opera 10.65+ Error.stack very similar to FF/Safari
             parseOpera11: function ErrorStackParser$$parseOpera11(error) {
                 var filtered = error.stack.split("\n").filter(function (line) {
                     return !!line.match(FIREFOX_SAFARI_STACK_REGEXP) && !line.match(/^Error created at/);
@@ -286,21 +266,514 @@
             }
         };
     })();
+    var SourceMap = function (e) {
+        var n = {};
 
-    //
-    // ==== STACKTRACE-GPS ====
-    //
+        function r(t) {
+            if (n[t]) return n[t].exports;
+            var o = n[t] = {
+                exports: {},
+                id: t,
+                loaded: !1
+            };
+            return e[t].call(o.exports, o, o.exports, r), o.loaded = !0, o.exports
+        }
+        return r.m = e, r.c = n, r.p = "", r(0)
+    }([function (e, n, r) {
+        var t = r(1),
+            o = r(2),
+            i = r(3).ArraySet,
+            a = r(4),
+            s = r(6).quickSort;
 
-    var SourceMap = function(e){var n={};function r(t){if(n[t])return n[t].exports;var o=n[t]={exports:{},id:t,loaded:!1};return e[t].call(o.exports,o,o.exports,r),o.loaded=!0,o.exports}return r.m=e,r.c=n,r.p="",r(0)}([function(e,n,r){var t=r(1),o=r(2),i=r(3).ArraySet,a=r(4),s=r(6).quickSort;function u(e){var n=e;return"string"==typeof e&&(n=JSON.parse(e.replace(/^\)\]\}'/,""))),null!=n.sections?new c(n):new l(n)}function l(e){var n=e;"string"==typeof e&&(n=JSON.parse(e.replace(/^\)\]\}'/,"")));var r=t.getArg(n,"version"),o=t.getArg(n,"sources"),a=t.getArg(n,"names",[]),s=t.getArg(n,"sourceRoot",null),u=t.getArg(n,"sourcesContent",null),l=t.getArg(n,"mappings"),g=t.getArg(n,"file",null);if(r!=this._version)throw new Error("Unsupported version: "+r);o=o.map(String).map(t.normalize).map(function(e){return s&&t.isAbsolute(s)&&t.isAbsolute(e)?t.relative(s,e):e}),this._names=i.fromArray(a.map(String),!0),this._sources=i.fromArray(o,!0),this.sourceRoot=s,this.sourcesContent=u,this._mappings=l,this.file=g}function g(){this.generatedLine=0,this.generatedColumn=0,this.source=null,this.originalLine=null,this.originalColumn=null,this.name=null}function c(e){var n=e;"string"==typeof e&&(n=JSON.parse(e.replace(/^\)\]\}'/,"")));var r=t.getArg(n,"version"),o=t.getArg(n,"sections");if(r!=this._version)throw new Error("Unsupported version: "+r);this._sources=new i,this._names=new i;var a={line:-1,column:0};this._sections=o.map(function(e){if(e.url)throw new Error("Support for url field in sections not implemented.");var n=t.getArg(e,"offset"),r=t.getArg(n,"line"),o=t.getArg(n,"column");if(r<a.line||r===a.line&&o<a.column)throw new Error("Section offsets must be ordered and non-overlapping.");return a=n,{generatedOffset:{generatedLine:r+1,generatedColumn:o+1},consumer:new u(t.getArg(e,"map"))}})}u.fromSourceMap=function(e){return l.fromSourceMap(e)},u.prototype._version=3,u.prototype.__generatedMappings=null,Object.defineProperty(u.prototype,"_generatedMappings",{get:function(){return this.__generatedMappings||this._parseMappings(this._mappings,this.sourceRoot),this.__generatedMappings}}),u.prototype.__originalMappings=null,Object.defineProperty(u.prototype,"_originalMappings",{get:function(){return this.__originalMappings||this._parseMappings(this._mappings,this.sourceRoot),this.__originalMappings}}),u.prototype._charIsMappingSeparator=function(e,n){var r=e.charAt(n);return";"===r||","===r},u.prototype._parseMappings=function(e,n){throw new Error("Subclasses must implement _parseMappings")},u.GENERATED_ORDER=1,u.ORIGINAL_ORDER=2,u.GREATEST_LOWER_BOUND=1,u.LEAST_UPPER_BOUND=2,u.prototype.eachMapping=function(e,n,r){var o,i=n||null;switch(r||u.GENERATED_ORDER){case u.GENERATED_ORDER:o=this._generatedMappings;break;case u.ORIGINAL_ORDER:o=this._originalMappings;break;default:throw new Error("Unknown order of iteration.")}var a=this.sourceRoot;o.map(function(e){var n=null===e.source?null:this._sources.at(e.source);return null!=n&&null!=a&&(n=t.join(a,n)),{source:n,generatedLine:e.generatedLine,generatedColumn:e.generatedColumn,originalLine:e.originalLine,originalColumn:e.originalColumn,name:null===e.name?null:this._names.at(e.name)}},this).forEach(e,i)},u.prototype.allGeneratedPositionsFor=function(e){var n=t.getArg(e,"line"),r={source:t.getArg(e,"source"),originalLine:n,originalColumn:t.getArg(e,"column",0)};if(null!=this.sourceRoot&&(r.source=t.relative(this.sourceRoot,r.source)),!this._sources.has(r.source))return[];r.source=this._sources.indexOf(r.source);var i=[],a=this._findMapping(r,this._originalMappings,"originalLine","originalColumn",t.compareByOriginalPositions,o.LEAST_UPPER_BOUND);if(a>=0){var s=this._originalMappings[a];if(void 0===e.column)for(var u=s.originalLine;s&&s.originalLine===u;)i.push({line:t.getArg(s,"generatedLine",null),column:t.getArg(s,"generatedColumn",null),lastColumn:t.getArg(s,"lastGeneratedColumn",null)}),s=this._originalMappings[++a];else for(var l=s.originalColumn;s&&s.originalLine===n&&s.originalColumn==l;)i.push({line:t.getArg(s,"generatedLine",null),column:t.getArg(s,"generatedColumn",null),lastColumn:t.getArg(s,"lastGeneratedColumn",null)}),s=this._originalMappings[++a]}return i},n.SourceMapConsumer=u,l.prototype=Object.create(u.prototype),l.prototype.consumer=u,l.fromSourceMap=function(e){var n=Object.create(l.prototype),r=n._names=i.fromArray(e._names.toArray(),!0),o=n._sources=i.fromArray(e._sources.toArray(),!0);n.sourceRoot=e._sourceRoot,n.sourcesContent=e._generateSourcesContent(n._sources.toArray(),n.sourceRoot),n.file=e._file;for(var a=e._mappings.toArray().slice(),u=n.__generatedMappings=[],c=n.__originalMappings=[],p=0,h=a.length;p<h;p++){var f=a[p],d=new g;d.generatedLine=f.generatedLine,d.generatedColumn=f.generatedColumn,f.source&&(d.source=o.indexOf(f.source),d.originalLine=f.originalLine,d.originalColumn=f.originalColumn,f.name&&(d.name=r.indexOf(f.name)),c.push(d)),u.push(d)}return s(n.__originalMappings,t.compareByOriginalPositions),n},l.prototype._version=3,Object.defineProperty(l.prototype,"sources",{get:function(){return this._sources.toArray().map(function(e){return null!=this.sourceRoot?t.join(this.sourceRoot,e):e},this)}}),l.prototype._parseMappings=function(e,n){for(var r,o,i,u,l,c=1,p=0,h=0,f=0,d=0,m=0,_=e.length,v=0,C={},A={},y=[],L=[];v<_;)if(";"===e.charAt(v))c++,v++,p=0;else if(","===e.charAt(v))v++;else{for((r=new g).generatedLine=c,u=v;u<_&&!this._charIsMappingSeparator(e,u);u++);if(i=C[o=e.slice(v,u)])v+=o.length;else{for(i=[];v<u;)a.decode(e,v,A),l=A.value,v=A.rest,i.push(l);if(2===i.length)throw new Error("Found a source, but no line and column");if(3===i.length)throw new Error("Found a source and line, but no column");C[o]=i}r.generatedColumn=p+i[0],p=r.generatedColumn,i.length>1&&(r.source=d+i[1],d+=i[1],r.originalLine=h+i[2],h=r.originalLine,r.originalLine+=1,r.originalColumn=f+i[3],f=r.originalColumn,i.length>4&&(r.name=m+i[4],m+=i[4])),L.push(r),"number"==typeof r.originalLine&&y.push(r)}s(L,t.compareByGeneratedPositionsDeflated),this.__generatedMappings=L,s(y,t.compareByOriginalPositions),this.__originalMappings=y},l.prototype._findMapping=function(e,n,r,t,i,a){if(e[r]<=0)throw new TypeError("Line must be greater than or equal to 1, got "+e[r]);if(e[t]<0)throw new TypeError("Column must be greater than or equal to 0, got "+e[t]);return o.search(e,n,i,a)},l.prototype.computeColumnSpans=function(){for(var e=0;e<this._generatedMappings.length;++e){var n=this._generatedMappings[e];if(e+1<this._generatedMappings.length){var r=this._generatedMappings[e+1];if(n.generatedLine===r.generatedLine){n.lastGeneratedColumn=r.generatedColumn-1;continue}}n.lastGeneratedColumn=1/0}},l.prototype.originalPositionFor=function(e){var n={generatedLine:t.getArg(e,"line"),generatedColumn:t.getArg(e,"column")},r=this._findMapping(n,this._generatedMappings,"generatedLine","generatedColumn",t.compareByGeneratedPositionsDeflated,t.getArg(e,"bias",u.GREATEST_LOWER_BOUND));if(r>=0){var o=this._generatedMappings[r];if(o.generatedLine===n.generatedLine){var i=t.getArg(o,"source",null);null!==i&&(i=this._sources.at(i),null!=this.sourceRoot&&(i=t.join(this.sourceRoot,i)));var a=t.getArg(o,"name",null);return null!==a&&(a=this._names.at(a)),{source:i,line:t.getArg(o,"originalLine",null),column:t.getArg(o,"originalColumn",null),name:a}}}return{source:null,line:null,column:null,name:null}},l.prototype.hasContentsOfAllSources=function(){return!!this.sourcesContent&&(this.sourcesContent.length>=this._sources.size()&&!this.sourcesContent.some(function(e){return null==e}))},l.prototype.sourceContentFor=function(e,n){if(!this.sourcesContent)return null;if(null!=this.sourceRoot&&(e=t.relative(this.sourceRoot,e)),this._sources.has(e))return this.sourcesContent[this._sources.indexOf(e)];var r;if(null!=this.sourceRoot&&(r=t.urlParse(this.sourceRoot))){var o=e.replace(/^file:\/\//,"");if("file"==r.scheme&&this._sources.has(o))return this.sourcesContent[this._sources.indexOf(o)];if((!r.path||"/"==r.path)&&this._sources.has("/"+e))return this.sourcesContent[this._sources.indexOf("/"+e)]}if(n)return null;throw new Error('"'+e+'" is not in the SourceMap.')},l.prototype.generatedPositionFor=function(e){var n=t.getArg(e,"source");if(null!=this.sourceRoot&&(n=t.relative(this.sourceRoot,n)),!this._sources.has(n))return{line:null,column:null,lastColumn:null};var r={source:n=this._sources.indexOf(n),originalLine:t.getArg(e,"line"),originalColumn:t.getArg(e,"column")},o=this._findMapping(r,this._originalMappings,"originalLine","originalColumn",t.compareByOriginalPositions,t.getArg(e,"bias",u.GREATEST_LOWER_BOUND));if(o>=0){var i=this._originalMappings[o];if(i.source===r.source)return{line:t.getArg(i,"generatedLine",null),column:t.getArg(i,"generatedColumn",null),lastColumn:t.getArg(i,"lastGeneratedColumn",null)}}return{line:null,column:null,lastColumn:null}},n.BasicSourceMapConsumer=l,c.prototype=Object.create(u.prototype),c.prototype.constructor=u,c.prototype._version=3,Object.defineProperty(c.prototype,"sources",{get:function(){for(var e=[],n=0;n<this._sections.length;n++)for(var r=0;r<this._sections[n].consumer.sources.length;r++)e.push(this._sections[n].consumer.sources[r]);return e}}),c.prototype.originalPositionFor=function(e){var n={generatedLine:t.getArg(e,"line"),generatedColumn:t.getArg(e,"column")},r=o.search(n,this._sections,function(e,n){var r=e.generatedLine-n.generatedOffset.generatedLine;return r||e.generatedColumn-n.generatedOffset.generatedColumn}),i=this._sections[r];return i?i.consumer.originalPositionFor({line:n.generatedLine-(i.generatedOffset.generatedLine-1),column:n.generatedColumn-(i.generatedOffset.generatedLine===n.generatedLine?i.generatedOffset.generatedColumn-1:0),bias:e.bias}):{source:null,line:null,column:null,name:null}},c.prototype.hasContentsOfAllSources=function(){return this._sections.every(function(e){return e.consumer.hasContentsOfAllSources()})},c.prototype.sourceContentFor=function(e,n){for(var r=0;r<this._sections.length;r++){var t=this._sections[r].consumer.sourceContentFor(e,!0);if(t)return t}if(n)return null;throw new Error('"'+e+'" is not in the SourceMap.')},c.prototype.generatedPositionFor=function(e){for(var n=0;n<this._sections.length;n++){var r=this._sections[n];if(-1!==r.consumer.sources.indexOf(t.getArg(e,"source"))){var o=r.consumer.generatedPositionFor(e);if(o)return{line:o.line+(r.generatedOffset.generatedLine-1),column:o.column+(r.generatedOffset.generatedLine===o.line?r.generatedOffset.generatedColumn-1:0)}}}return{line:null,column:null}},c.prototype._parseMappings=function(e,n){this.__generatedMappings=[],this.__originalMappings=[];for(var r=0;r<this._sections.length;r++)for(var o=this._sections[r],i=o.consumer._generatedMappings,a=0;a<i.length;a++){var u=i[a],l=o.consumer._sources.at(u.source);null!==o.consumer.sourceRoot&&(l=t.join(o.consumer.sourceRoot,l)),this._sources.add(l),l=this._sources.indexOf(l);var g=o.consumer._names.at(u.name);this._names.add(g),g=this._names.indexOf(g);var c={source:l,generatedLine:u.generatedLine+(o.generatedOffset.generatedLine-1),generatedColumn:u.generatedColumn+(o.generatedOffset.generatedLine===u.generatedLine?o.generatedOffset.generatedColumn-1:0),originalLine:u.originalLine,originalColumn:u.originalColumn,name:g};this.__generatedMappings.push(c),"number"==typeof c.originalLine&&this.__originalMappings.push(c)}s(this.__generatedMappings,t.compareByGeneratedPositionsDeflated),s(this.__originalMappings,t.compareByOriginalPositions)},n.IndexedSourceMapConsumer=c},function(e,n){n.getArg=function(e,n,r){if(n in e)return e[n];if(3===arguments.length)return r;throw new Error('"'+n+'" is a required argument.')};var r=/^(?:([\w+\-.]+):)?\/\/(?:(\w+:\w+)@)?([\w.]*)(?::(\d+))?(\S*)$/,t=/^data:.+\,.+$/;function o(e){var n=e.match(r);return n?{scheme:n[1],auth:n[2],host:n[3],port:n[4],path:n[5]}:null}function i(e){var n="";return e.scheme&&(n+=e.scheme+":"),n+="//",e.auth&&(n+=e.auth+"@"),e.host&&(n+=e.host),e.port&&(n+=":"+e.port),e.path&&(n+=e.path),n}function a(e){var r=e,t=o(e);if(t){if(!t.path)return e;r=t.path}for(var a,s=n.isAbsolute(r),u=r.split(/\/+/),l=0,g=u.length-1;g>=0;g--)"."===(a=u[g])?u.splice(g,1):".."===a?l++:l>0&&(""===a?(u.splice(g+1,l),l=0):(u.splice(g,2),l--));return""===(r=u.join("/"))&&(r=s?"/":"."),t?(t.path=r,i(t)):r}n.urlParse=o,n.urlGenerate=i,n.normalize=a,n.join=function(e,n){""===e&&(e="."),""===n&&(n=".");var r=o(n),s=o(e);if(s&&(e=s.path||"/"),r&&!r.scheme)return s&&(r.scheme=s.scheme),i(r);if(r||n.match(t))return n;if(s&&!s.host&&!s.path)return s.host=n,i(s);var u="/"===n.charAt(0)?n:a(e.replace(/\/+$/,"")+"/"+n);return s?(s.path=u,i(s)):u},n.isAbsolute=function(e){return"/"===e.charAt(0)||!!e.match(r)},n.relative=function(e,n){""===e&&(e="."),e=e.replace(/\/$/,"");for(var r=0;0!==n.indexOf(e+"/");){var t=e.lastIndexOf("/");if(t<0)return n;if((e=e.slice(0,t)).match(/^([^\/]+:\/)?\/*$/))return n;++r}return Array(r+1).join("../")+n.substr(e.length+1)};var s=!("__proto__"in Object.create(null));function u(e){return e}function l(e){if(!e)return!1;var n=e.length;if(n<9)return!1;if(95!==e.charCodeAt(n-1)||95!==e.charCodeAt(n-2)||111!==e.charCodeAt(n-3)||116!==e.charCodeAt(n-4)||111!==e.charCodeAt(n-5)||114!==e.charCodeAt(n-6)||112!==e.charCodeAt(n-7)||95!==e.charCodeAt(n-8)||95!==e.charCodeAt(n-9))return!1;for(var r=n-10;r>=0;r--)if(36!==e.charCodeAt(r))return!1;return!0}function g(e,n){return e===n?0:e>n?1:-1}n.toSetString=s?u:function(e){return l(e)?"$"+e:e},n.fromSetString=s?u:function(e){return l(e)?e.slice(1):e},n.compareByOriginalPositions=function(e,n,r){var t=e.source-n.source;return 0!==t?t:0!=(t=e.originalLine-n.originalLine)?t:0!=(t=e.originalColumn-n.originalColumn)||r?t:0!=(t=e.generatedColumn-n.generatedColumn)?t:0!=(t=e.generatedLine-n.generatedLine)?t:e.name-n.name},n.compareByGeneratedPositionsDeflated=function(e,n,r){var t=e.generatedLine-n.generatedLine;return 0!==t?t:0!=(t=e.generatedColumn-n.generatedColumn)||r?t:0!=(t=e.source-n.source)?t:0!=(t=e.originalLine-n.originalLine)?t:0!=(t=e.originalColumn-n.originalColumn)?t:e.name-n.name},n.compareByGeneratedPositionsInflated=function(e,n){var r=e.generatedLine-n.generatedLine;return 0!==r?r:0!=(r=e.generatedColumn-n.generatedColumn)?r:0!==(r=g(e.source,n.source))?r:0!=(r=e.originalLine-n.originalLine)?r:0!=(r=e.originalColumn-n.originalColumn)?r:g(e.name,n.name)}},function(e,n){n.GREATEST_LOWER_BOUND=1,n.LEAST_UPPER_BOUND=2,n.search=function(e,r,t,o){if(0===r.length)return-1;var i=function e(r,t,o,i,a,s){var u=Math.floor((t-r)/2)+r,l=a(o,i[u],!0);return 0===l?u:l>0?t-u>1?e(u,t,o,i,a,s):s==n.LEAST_UPPER_BOUND?t<i.length?t:-1:u:u-r>1?e(r,u,o,i,a,s):s==n.LEAST_UPPER_BOUND?u:r<0?-1:r}(-1,r.length,e,r,t,o||n.GREATEST_LOWER_BOUND);if(i<0)return-1;for(;i-1>=0&&0===t(r[i],r[i-1],!0);)--i;return i}},function(e,n,r){var t=r(1),o=Object.prototype.hasOwnProperty;function i(){this._array=[],this._set=Object.create(null)}i.fromArray=function(e,n){for(var r=new i,t=0,o=e.length;t<o;t++)r.add(e[t],n);return r},i.prototype.size=function(){return Object.getOwnPropertyNames(this._set).length},i.prototype.add=function(e,n){var r=t.toSetString(e),i=o.call(this._set,r),a=this._array.length;i&&!n||this._array.push(e),i||(this._set[r]=a)},i.prototype.has=function(e){var n=t.toSetString(e);return o.call(this._set,n)},i.prototype.indexOf=function(e){var n=t.toSetString(e);if(o.call(this._set,n))return this._set[n];throw new Error('"'+e+'" is not in the set.')},i.prototype.at=function(e){if(e>=0&&e<this._array.length)return this._array[e];throw new Error("No element indexed by "+e)},i.prototype.toArray=function(){return this._array.slice()},n.ArraySet=i},function(e,n,r){var t=r(5);n.encode=function(e){var n,r,o="",i=(r=e)<0?1+(-r<<1):0+(r<<1);do{n=31&i,(i>>>=5)>0&&(n|=32),o+=t.encode(n)}while(i>0);return o},n.decode=function(e,n,r){var o,i,a,s,u=e.length,l=0,g=0;do{if(n>=u)throw new Error("Expected more digits in base 64 VLQ value.");if(-1===(i=t.decode(e.charCodeAt(n++))))throw new Error("Invalid base64 digit: "+e.charAt(n-1));o=!!(32&i),l+=(i&=31)<<g,g+=5}while(o);r.value=(s=(a=l)>>1,1==(1&a)?-s:s),r.rest=n}},function(e,n){var r="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split("");n.encode=function(e){if(0<=e&&e<r.length)return r[e];throw new TypeError("Must be between 0 and 63: "+e)},n.decode=function(e){return 65<=e&&e<=90?e-65:97<=e&&e<=122?e-97+26:48<=e&&e<=57?e-48+52:43==e?62:47==e?63:-1}},function(e,n){function r(e,n,r){var t=e[n];e[n]=e[r],e[r]=t}function t(e,n,o,i){if(o<i){var a=o-1;r(e,(g=o,c=i,Math.round(g+Math.random()*(c-g))),i);for(var s=e[i],u=o;u<i;u++)n(e[u],s)<=0&&r(e,a+=1,u);r(e,a+1,u);var l=a+1;t(e,n,o,l-1),t(e,n,l+1,i)}var g,c}n.quickSort=function(e,n){t(e,n,0,e.length-1)}}]);
+        function u(e) {
+            var n = e;
+            return "string" == typeof e && (n = JSON.parse(e.replace(/^\)\]\}'/, ""))), null != n.sections ? new c(n) : new l(n)
+        }
 
+        function l(e) {
+            var n = e;
+            "string" == typeof e && (n = JSON.parse(e.replace(/^\)\]\}'/, "")));
+            var r = t.getArg(n, "version"),
+                o = t.getArg(n, "sources"),
+                a = t.getArg(n, "names", []),
+                s = t.getArg(n, "sourceRoot", null),
+                u = t.getArg(n, "sourcesContent", null),
+                l = t.getArg(n, "mappings"),
+                g = t.getArg(n, "file", null);
+            if (r != this._version) throw new Error("Unsupported version: " + r);
+            o = o.map(String).map(t.normalize).map(function (e) {
+                return s && t.isAbsolute(s) && t.isAbsolute(e) ? t.relative(s, e) : e
+            }), this._names = i.fromArray(a.map(String), !0), this._sources = i.fromArray(o, !0), this.sourceRoot = s, this.sourcesContent = u, this._mappings = l, this.file = g
+        }
+
+        function g() {
+            this.generatedLine = 0, this.generatedColumn = 0, this.source = null, this.originalLine = null, this.originalColumn = null, this.name = null
+        }
+
+        function c(e) {
+            var n = e;
+            "string" == typeof e && (n = JSON.parse(e.replace(/^\)\]\}'/, "")));
+            var r = t.getArg(n, "version"),
+                o = t.getArg(n, "sections");
+            if (r != this._version) throw new Error("Unsupported version: " + r);
+            this._sources = new i, this._names = new i;
+            var a = {
+                line: -1,
+                column: 0
+            };
+            this._sections = o.map(function (e) {
+                if (e.url) throw new Error("Support for url field in sections not implemented.");
+                var n = t.getArg(e, "offset"),
+                    r = t.getArg(n, "line"),
+                    o = t.getArg(n, "column");
+                if (r < a.line || r === a.line && o < a.column) throw new Error("Section offsets must be ordered and non-overlapping.");
+                return a = n, {
+                    generatedOffset: {
+                        generatedLine: r + 1,
+                        generatedColumn: o + 1
+                    },
+                    consumer: new u(t.getArg(e, "map"))
+                }
+            })
+        }
+        u.fromSourceMap = function (e) {
+            return l.fromSourceMap(e)
+        }, u.prototype._version = 3, u.prototype.__generatedMappings = null, Object.defineProperty(u.prototype, "_generatedMappings", {
+            get: function () {
+                return this.__generatedMappings || this._parseMappings(this._mappings, this.sourceRoot), this.__generatedMappings
+            }
+        }), u.prototype.__originalMappings = null, Object.defineProperty(u.prototype, "_originalMappings", {
+            get: function () {
+                return this.__originalMappings || this._parseMappings(this._mappings, this.sourceRoot), this.__originalMappings
+            }
+        }), u.prototype._charIsMappingSeparator = function (e, n) {
+            var r = e.charAt(n);
+            return ";" === r || "," === r
+        }, u.prototype._parseMappings = function (e, n) {
+            throw new Error("Subclasses must implement _parseMappings")
+        }, u.GENERATED_ORDER = 1, u.ORIGINAL_ORDER = 2, u.GREATEST_LOWER_BOUND = 1, u.LEAST_UPPER_BOUND = 2, u.prototype.eachMapping = function (e, n, r) {
+            var o, i = n || null;
+            switch (r || u.GENERATED_ORDER) {
+                case u.GENERATED_ORDER:
+                    o = this._generatedMappings;
+                    break;
+                case u.ORIGINAL_ORDER:
+                    o = this._originalMappings;
+                    break;
+                default:
+                    throw new Error("Unknown order of iteration.")
+            }
+            var a = this.sourceRoot;
+            o.map(function (e) {
+                var n = null === e.source ? null : this._sources.at(e.source);
+                return null != n && null != a && (n = t.join(a, n)), {
+                    source: n,
+                    generatedLine: e.generatedLine,
+                    generatedColumn: e.generatedColumn,
+                    originalLine: e.originalLine,
+                    originalColumn: e.originalColumn,
+                    name: null === e.name ? null : this._names.at(e.name)
+                }
+            }, this).forEach(e, i)
+        }, u.prototype.allGeneratedPositionsFor = function (e) {
+            var n = t.getArg(e, "line"),
+                r = {
+                    source: t.getArg(e, "source"),
+                    originalLine: n,
+                    originalColumn: t.getArg(e, "column", 0)
+                };
+            if (null != this.sourceRoot && (r.source = t.relative(this.sourceRoot, r.source)), !this._sources.has(r.source)) return [];
+            r.source = this._sources.indexOf(r.source);
+            var i = [],
+                a = this._findMapping(r, this._originalMappings, "originalLine", "originalColumn", t.compareByOriginalPositions, o.LEAST_UPPER_BOUND);
+            if (a >= 0) {
+                var s = this._originalMappings[a];
+                if (void 0 === e.column)
+                    for (var u = s.originalLine; s && s.originalLine === u;) i.push({
+                        line: t.getArg(s, "generatedLine", null),
+                        column: t.getArg(s, "generatedColumn", null),
+                        lastColumn: t.getArg(s, "lastGeneratedColumn", null)
+                    }), s = this._originalMappings[++a];
+                else
+                    for (var l = s.originalColumn; s && s.originalLine === n && s.originalColumn == l;) i.push({
+                        line: t.getArg(s, "generatedLine", null),
+                        column: t.getArg(s, "generatedColumn", null),
+                        lastColumn: t.getArg(s, "lastGeneratedColumn", null)
+                    }), s = this._originalMappings[++a]
+            }
+            return i
+        }, n.SourceMapConsumer = u, l.prototype = Object.create(u.prototype), l.prototype.consumer = u, l.fromSourceMap = function (e) {
+            var n = Object.create(l.prototype),
+                r = n._names = i.fromArray(e._names.toArray(), !0),
+                o = n._sources = i.fromArray(e._sources.toArray(), !0);
+            n.sourceRoot = e._sourceRoot, n.sourcesContent = e._generateSourcesContent(n._sources.toArray(), n.sourceRoot), n.file = e._file;
+            for (var a = e._mappings.toArray().slice(), u = n.__generatedMappings = [], c = n.__originalMappings = [], p = 0, h = a.length; p < h; p++) {
+                var f = a[p],
+                    d = new g;
+                d.generatedLine = f.generatedLine, d.generatedColumn = f.generatedColumn, f.source && (d.source = o.indexOf(f.source), d.originalLine = f.originalLine, d.originalColumn = f.originalColumn, f.name && (d.name = r.indexOf(f.name)), c.push(d)), u.push(d)
+            }
+            return s(n.__originalMappings, t.compareByOriginalPositions), n
+        }, l.prototype._version = 3, Object.defineProperty(l.prototype, "sources", {
+            get: function () {
+                return this._sources.toArray().map(function (e) {
+                    return null != this.sourceRoot ? t.join(this.sourceRoot, e) : e
+                }, this)
+            }
+        }), l.prototype._parseMappings = function (e, n) {
+            for (var r, o, i, u, l, c = 1, p = 0, h = 0, f = 0, d = 0, m = 0, _ = e.length, v = 0, C = {}, A = {}, y = [], L = []; v < _;)
+                if (";" === e.charAt(v)) c++ , v++ , p = 0;
+                else if ("," === e.charAt(v)) v++;
+                else {
+                    for ((r = new g).generatedLine = c, u = v; u < _ && !this._charIsMappingSeparator(e, u); u++);
+                    if (i = C[o = e.slice(v, u)]) v += o.length;
+                    else {
+                        for (i = []; v < u;) a.decode(e, v, A), l = A.value, v = A.rest, i.push(l);
+                        if (2 === i.length) throw new Error("Found a source, but no line and column");
+                        if (3 === i.length) throw new Error("Found a source and line, but no column");
+                        C[o] = i
+                    }
+                    r.generatedColumn = p + i[0], p = r.generatedColumn, i.length > 1 && (r.source = d + i[1], d += i[1], r.originalLine = h + i[2], h = r.originalLine, r.originalLine += 1, r.originalColumn = f + i[3], f = r.originalColumn, i.length > 4 && (r.name = m + i[4], m += i[4])), L.push(r), "number" == typeof r.originalLine && y.push(r)
+                }
+            s(L, t.compareByGeneratedPositionsDeflated), this.__generatedMappings = L, s(y, t.compareByOriginalPositions), this.__originalMappings = y
+        }, l.prototype._findMapping = function (e, n, r, t, i, a) {
+            if (e[r] <= 0) throw new TypeError("Line must be greater than or equal to 1, got " + e[r]);
+            if (e[t] < 0) throw new TypeError("Column must be greater than or equal to 0, got " + e[t]);
+            return o.search(e, n, i, a)
+        }, l.prototype.computeColumnSpans = function () {
+            for (var e = 0; e < this._generatedMappings.length; ++e) {
+                var n = this._generatedMappings[e];
+                if (e + 1 < this._generatedMappings.length) {
+                    var r = this._generatedMappings[e + 1];
+                    if (n.generatedLine === r.generatedLine) {
+                        n.lastGeneratedColumn = r.generatedColumn - 1;
+                        continue
+                    }
+                }
+                n.lastGeneratedColumn = 1 / 0
+            }
+        }, l.prototype.originalPositionFor = function (e) {
+            var n = {
+                generatedLine: t.getArg(e, "line"),
+                generatedColumn: t.getArg(e, "column")
+            },
+                r = this._findMapping(n, this._generatedMappings, "generatedLine", "generatedColumn", t.compareByGeneratedPositionsDeflated, t.getArg(e, "bias", u.GREATEST_LOWER_BOUND));
+            if (r >= 0) {
+                var o = this._generatedMappings[r];
+                if (o.generatedLine === n.generatedLine) {
+                    var i = t.getArg(o, "source", null);
+                    null !== i && (i = this._sources.at(i), null != this.sourceRoot && (i = t.join(this.sourceRoot, i)));
+                    var a = t.getArg(o, "name", null);
+                    return null !== a && (a = this._names.at(a)), {
+                        source: i,
+                        line: t.getArg(o, "originalLine", null),
+                        column: t.getArg(o, "originalColumn", null),
+                        name: a
+                    }
+                }
+            }
+            return {
+                source: null,
+                line: null,
+                column: null,
+                name: null
+            }
+        }, l.prototype.hasContentsOfAllSources = function () {
+            return !!this.sourcesContent && (this.sourcesContent.length >= this._sources.size() && !this.sourcesContent.some(function (e) {
+                return null == e
+            }))
+        }, l.prototype.sourceContentFor = function (e, n) {
+            if (!this.sourcesContent) return null;
+            if (null != this.sourceRoot && (e = t.relative(this.sourceRoot, e)), this._sources.has(e)) return this.sourcesContent[this._sources.indexOf(e)];
+            var r;
+            if (null != this.sourceRoot && (r = t.urlParse(this.sourceRoot))) {
+                var o = e.replace(/^file:\/\//, "");
+                if ("file" == r.scheme && this._sources.has(o)) return this.sourcesContent[this._sources.indexOf(o)];
+                if ((!r.path || "/" == r.path) && this._sources.has("/" + e)) return this.sourcesContent[this._sources.indexOf("/" + e)]
+            }
+            if (n) return null;
+            throw new Error('"' + e + '" is not in the SourceMap.')
+        }, l.prototype.generatedPositionFor = function (e) {
+            var n = t.getArg(e, "source");
+            if (null != this.sourceRoot && (n = t.relative(this.sourceRoot, n)), !this._sources.has(n)) return {
+                line: null,
+                column: null,
+                lastColumn: null
+            };
+            var r = {
+                source: n = this._sources.indexOf(n),
+                originalLine: t.getArg(e, "line"),
+                originalColumn: t.getArg(e, "column")
+            },
+                o = this._findMapping(r, this._originalMappings, "originalLine", "originalColumn", t.compareByOriginalPositions, t.getArg(e, "bias", u.GREATEST_LOWER_BOUND));
+            if (o >= 0) {
+                var i = this._originalMappings[o];
+                if (i.source === r.source) return {
+                    line: t.getArg(i, "generatedLine", null),
+                    column: t.getArg(i, "generatedColumn", null),
+                    lastColumn: t.getArg(i, "lastGeneratedColumn", null)
+                }
+            }
+            return {
+                line: null,
+                column: null,
+                lastColumn: null
+            }
+        }, n.BasicSourceMapConsumer = l, c.prototype = Object.create(u.prototype), c.prototype.constructor = u, c.prototype._version = 3, Object.defineProperty(c.prototype, "sources", {
+            get: function () {
+                for (var e = [], n = 0; n < this._sections.length; n++)
+                    for (var r = 0; r < this._sections[n].consumer.sources.length; r++) e.push(this._sections[n].consumer.sources[r]);
+                return e
+            }
+        }), c.prototype.originalPositionFor = function (e) {
+            var n = {
+                generatedLine: t.getArg(e, "line"),
+                generatedColumn: t.getArg(e, "column")
+            },
+                r = o.search(n, this._sections, function (e, n) {
+                    var r = e.generatedLine - n.generatedOffset.generatedLine;
+                    return r || e.generatedColumn - n.generatedOffset.generatedColumn
+                }),
+                i = this._sections[r];
+            return i ? i.consumer.originalPositionFor({
+                line: n.generatedLine - (i.generatedOffset.generatedLine - 1),
+                column: n.generatedColumn - (i.generatedOffset.generatedLine === n.generatedLine ? i.generatedOffset.generatedColumn - 1 : 0),
+                bias: e.bias
+            }) : {
+                    source: null,
+                    line: null,
+                    column: null,
+                    name: null
+                }
+        }, c.prototype.hasContentsOfAllSources = function () {
+            return this._sections.every(function (e) {
+                return e.consumer.hasContentsOfAllSources()
+            })
+        }, c.prototype.sourceContentFor = function (e, n) {
+            for (var r = 0; r < this._sections.length; r++) {
+                var t = this._sections[r].consumer.sourceContentFor(e, !0);
+                if (t) return t
+            }
+            if (n) return null;
+            throw new Error('"' + e + '" is not in the SourceMap.')
+        }, c.prototype.generatedPositionFor = function (e) {
+            for (var n = 0; n < this._sections.length; n++) {
+                var r = this._sections[n];
+                if (-1 !== r.consumer.sources.indexOf(t.getArg(e, "source"))) {
+                    var o = r.consumer.generatedPositionFor(e);
+                    if (o) return {
+                        line: o.line + (r.generatedOffset.generatedLine - 1),
+                        column: o.column + (r.generatedOffset.generatedLine === o.line ? r.generatedOffset.generatedColumn - 1 : 0)
+                    }
+                }
+            }
+            return {
+                line: null,
+                column: null
+            }
+        }, c.prototype._parseMappings = function (e, n) {
+            this.__generatedMappings = [], this.__originalMappings = [];
+            for (var r = 0; r < this._sections.length; r++)
+                for (var o = this._sections[r], i = o.consumer._generatedMappings, a = 0; a < i.length; a++) {
+                    var u = i[a],
+                        l = o.consumer._sources.at(u.source);
+                    null !== o.consumer.sourceRoot && (l = t.join(o.consumer.sourceRoot, l)), this._sources.add(l), l = this._sources.indexOf(l);
+                    var g = o.consumer._names.at(u.name);
+                    this._names.add(g), g = this._names.indexOf(g);
+                    var c = {
+                        source: l,
+                        generatedLine: u.generatedLine + (o.generatedOffset.generatedLine - 1),
+                        generatedColumn: u.generatedColumn + (o.generatedOffset.generatedLine === u.generatedLine ? o.generatedOffset.generatedColumn - 1 : 0),
+                        originalLine: u.originalLine,
+                        originalColumn: u.originalColumn,
+                        name: g
+                    };
+                    this.__generatedMappings.push(c), "number" == typeof c.originalLine && this.__originalMappings.push(c)
+                }
+            s(this.__generatedMappings, t.compareByGeneratedPositionsDeflated), s(this.__originalMappings, t.compareByOriginalPositions)
+        }, n.IndexedSourceMapConsumer = c
+    }, function (e, n) {
+        n.getArg = function (e, n, r) {
+            if (n in e) return e[n];
+            if (3 === arguments.length) return r;
+            throw new Error('"' + n + '" is a required argument.')
+        };
+        var r = /^(?:([\w+\-.]+):)?\/\/(?:(\w+:\w+)@)?([\w.]*)(?::(\d+))?(\S*)$/,
+            t = /^data:.+\,.+$/;
+
+        function o(e) {
+            var n = e.match(r);
+            return n ? {
+                scheme: n[1],
+                auth: n[2],
+                host: n[3],
+                port: n[4],
+                path: n[5]
+            } : null
+        }
+
+        function i(e) {
+            var n = "";
+            return e.scheme && (n += e.scheme + ":"), n += "//", e.auth && (n += e.auth + "@"), e.host && (n += e.host), e.port && (n += ":" + e.port), e.path && (n += e.path), n
+        }
+
+        function a(e) {
+            var r = e,
+                t = o(e);
+            if (t) {
+                if (!t.path) return e;
+                r = t.path
+            }
+            for (var a, s = n.isAbsolute(r), u = r.split(/\/+/), l = 0, g = u.length - 1; g >= 0; g--) "." === (a = u[g]) ? u.splice(g, 1) : ".." === a ? l++ : l > 0 && ("" === a ? (u.splice(g + 1, l), l = 0) : (u.splice(g, 2), l--));
+            return "" === (r = u.join("/")) && (r = s ? "/" : "."), t ? (t.path = r, i(t)) : r
+        }
+        n.urlParse = o, n.urlGenerate = i, n.normalize = a, n.join = function (e, n) {
+            "" === e && (e = "."), "" === n && (n = ".");
+            var r = o(n),
+                s = o(e);
+            if (s && (e = s.path || "/"), r && !r.scheme) return s && (r.scheme = s.scheme), i(r);
+            if (r || n.match(t)) return n;
+            if (s && !s.host && !s.path) return s.host = n, i(s);
+            var u = "/" === n.charAt(0) ? n : a(e.replace(/\/+$/, "") + "/" + n);
+            return s ? (s.path = u, i(s)) : u
+        }, n.isAbsolute = function (e) {
+            return "/" === e.charAt(0) || !!e.match(r)
+        }, n.relative = function (e, n) {
+            "" === e && (e = "."), e = e.replace(/\/$/, "");
+            for (var r = 0; 0 !== n.indexOf(e + "/");) {
+                var t = e.lastIndexOf("/");
+                if (t < 0) return n;
+                if ((e = e.slice(0, t)).match(/^([^\/]+:\/)?\/*$/)) return n;
+                ++r
+            }
+            return Array(r + 1).join("../") + n.substr(e.length + 1)
+        };
+        var s = !("__proto__" in Object.create(null));
+
+        function u(e) {
+            return e
+        }
+
+        function l(e) {
+            if (!e) return !1;
+            var n = e.length;
+            if (n < 9) return !1;
+            if (95 !== e.charCodeAt(n - 1) || 95 !== e.charCodeAt(n - 2) || 111 !== e.charCodeAt(n - 3) || 116 !== e.charCodeAt(n - 4) || 111 !== e.charCodeAt(n - 5) || 114 !== e.charCodeAt(n - 6) || 112 !== e.charCodeAt(n - 7) || 95 !== e.charCodeAt(n - 8) || 95 !== e.charCodeAt(n - 9)) return !1;
+            for (var r = n - 10; r >= 0; r--)
+                if (36 !== e.charCodeAt(r)) return !1;
+            return !0
+        }
+
+        function g(e, n) {
+            return e === n ? 0 : e > n ? 1 : -1
+        }
+        n.toSetString = s ? u : function (e) {
+            return l(e) ? "$" + e : e
+        }, n.fromSetString = s ? u : function (e) {
+            return l(e) ? e.slice(1) : e
+        }, n.compareByOriginalPositions = function (e, n, r) {
+            var t = e.source - n.source;
+            return 0 !== t ? t : 0 != (t = e.originalLine - n.originalLine) ? t : 0 != (t = e.originalColumn - n.originalColumn) || r ? t : 0 != (t = e.generatedColumn - n.generatedColumn) ? t : 0 != (t = e.generatedLine - n.generatedLine) ? t : e.name - n.name
+        }, n.compareByGeneratedPositionsDeflated = function (e, n, r) {
+            var t = e.generatedLine - n.generatedLine;
+            return 0 !== t ? t : 0 != (t = e.generatedColumn - n.generatedColumn) || r ? t : 0 != (t = e.source - n.source) ? t : 0 != (t = e.originalLine - n.originalLine) ? t : 0 != (t = e.originalColumn - n.originalColumn) ? t : e.name - n.name
+        }, n.compareByGeneratedPositionsInflated = function (e, n) {
+            var r = e.generatedLine - n.generatedLine;
+            return 0 !== r ? r : 0 != (r = e.generatedColumn - n.generatedColumn) ? r : 0 !== (r = g(e.source, n.source)) ? r : 0 != (r = e.originalLine - n.originalLine) ? r : 0 != (r = e.originalColumn - n.originalColumn) ? r : g(e.name, n.name)
+        }
+    }, function (e, n) {
+        n.GREATEST_LOWER_BOUND = 1, n.LEAST_UPPER_BOUND = 2, n.search = function (e, r, t, o) {
+            if (0 === r.length) return -1;
+            var i = function e(r, t, o, i, a, s) {
+                var u = Math.floor((t - r) / 2) + r,
+                    l = a(o, i[u], !0);
+                return 0 === l ? u : l > 0 ? t - u > 1 ? e(u, t, o, i, a, s) : s == n.LEAST_UPPER_BOUND ? t < i.length ? t : -1 : u : u - r > 1 ? e(r, u, o, i, a, s) : s == n.LEAST_UPPER_BOUND ? u : r < 0 ? -1 : r
+            }(-1, r.length, e, r, t, o || n.GREATEST_LOWER_BOUND);
+            if (i < 0) return -1;
+            for (; i - 1 >= 0 && 0 === t(r[i], r[i - 1], !0);)--i;
+            return i
+        }
+    }, function (e, n, r) {
+        var t = r(1),
+            o = Object.prototype.hasOwnProperty;
+
+        function i() {
+            this._array = [], this._set = Object.create(null)
+        }
+        i.fromArray = function (e, n) {
+            for (var r = new i, t = 0, o = e.length; t < o; t++) r.add(e[t], n);
+            return r
+        }, i.prototype.size = function () {
+            return Object.getOwnPropertyNames(this._set).length
+        }, i.prototype.add = function (e, n) {
+            var r = t.toSetString(e),
+                i = o.call(this._set, r),
+                a = this._array.length;
+            i && !n || this._array.push(e), i || (this._set[r] = a)
+        }, i.prototype.has = function (e) {
+            var n = t.toSetString(e);
+            return o.call(this._set, n)
+        }, i.prototype.indexOf = function (e) {
+            var n = t.toSetString(e);
+            if (o.call(this._set, n)) return this._set[n];
+            throw new Error('"' + e + '" is not in the set.')
+        }, i.prototype.at = function (e) {
+            if (e >= 0 && e < this._array.length) return this._array[e];
+            throw new Error("No element indexed by " + e)
+        }, i.prototype.toArray = function () {
+            return this._array.slice()
+        }, n.ArraySet = i
+    }, function (e, n, r) {
+        var t = r(5);
+        n.encode = function (e) {
+            var n, r, o = "",
+                i = (r = e) < 0 ? 1 + (-r << 1) : 0 + (r << 1);
+            do {
+                n = 31 & i, (i >>>= 5) > 0 && (n |= 32), o += t.encode(n)
+            } while (i > 0);
+            return o
+        }, n.decode = function (e, n, r) {
+            var o, i, a, s, u = e.length,
+                l = 0,
+                g = 0;
+            do {
+                if (n >= u) throw new Error("Expected more digits in base 64 VLQ value.");
+                if (-1 === (i = t.decode(e.charCodeAt(n++)))) throw new Error("Invalid base64 digit: " + e.charAt(n - 1));
+                o = !!(32 & i), l += (i &= 31) << g, g += 5
+            } while (o);
+            r.value = (s = (a = l) >> 1, 1 == (1 & a) ? -s : s), r.rest = n
+        }
+    }, function (e, n) {
+        var r = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split("");
+        n.encode = function (e) {
+            if (0 <= e && e < r.length) return r[e];
+            throw new TypeError("Must be between 0 and 63: " + e)
+        }, n.decode = function (e) {
+            return 65 <= e && e <= 90 ? e - 65 : 97 <= e && e <= 122 ? e - 97 + 26 : 48 <= e && e <= 57 ? e - 48 + 52 : 43 == e ? 62 : 47 == e ? 63 : -1
+        }
+    }, function (e, n) {
+        function r(e, n, r) {
+            var t = e[n];
+            e[n] = e[r], e[r] = t
+        }
+
+        function t(e, n, o, i) {
+            if (o < i) {
+                var a = o - 1;
+                r(e, (g = o, c = i, Math.round(g + Math.random() * (c - g))), i);
+                for (var s = e[i], u = o; u < i; u++) n(e[u], s) <= 0 && r(e, a += 1, u);
+                r(e, a + 1, u);
+                var l = a + 1;
+                t(e, n, o, l - 1), t(e, n, l + 1, i)
+            }
+            var g, c
+        }
+        n.quickSort = function (e, n) {
+            t(e, n, 0, e.length - 1)
+        }
+    }]);
     var StackTraceGPS = (function (SourceMap, StackFrame) {
         "use strict";
-        /**
-           * Make a X-Domain request to url and callback.
-           *
-           * @param {String} url
-           * @returns {Promise} with response text if fulfilled
-           */
 
         function _xdr(url) {
             return new Promise(function (resolve, reject) {
@@ -319,13 +792,7 @@
                 req.send();
             });
         }
-        /**
-           * Convert a Base64-encoded string into its original representation.
-           * Used for inline sourcemaps.
-           *
-           * @param {String} b64str Base-64 encoded string
-           * @returns {String} original representation of the base64-encoded string.
-           */
+
         function _atob(b64str) {
             if (typeof window !== "undefined" && window.atob) {
                 return window.atob(b64str);
@@ -333,6 +800,7 @@
                 throw new Error("You must supply a polyfill for window.atob in this environment");
             }
         }
+
         function _parseJson(string) {
             if (typeof JSON !== "undefined" && JSON.parse) {
                 return JSON.parse(string);
@@ -340,19 +808,13 @@
                 throw new Error("You must supply a polyfill for JSON.parse in this environment");
             }
         }
+
         function _findFunctionName(source, lineNumber) {
-            var syntaxes = [ // {name} = function ({args}) TODO args capture
-                /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/, // function {name}({args}) m[1]=name m[2]=args
-                /function\s+([^('"`]*?)\s*\(([^)]*)\)/, // {name} = eval()
-                /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/, // fn_name() {
-                /\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?(\S+)\s*\(.*?\)\s*\{/, // {name} = () => {
-                /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/];
+            var syntaxes = [/['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/, /function\s+([^('"`]*?)\s*\(([^)]*)\)/, /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/, /\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?(\S+)\s*\(.*?\)\s*\{/, /['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/];
             var lines = source.split("\n");
-            // Walk backwards in the source lines until we find the line which matches one of the patterns above
             var code = "";
             var maxLines = Math.min(lineNumber, 20);
             for (var i = 0; i < maxLines; ++i) {
-                // lineNo is 1-based, source[] is 0-based
                 var line = lines[lineNumber - i - 1];
                 var commentPos = line.indexOf("//");
                 if (commentPos >= 0) {
@@ -371,11 +833,13 @@
             }
             return undefined;
         }
+
         function _ensureSupportedEnvironment() {
             if (typeof Object.defineProperty !== "function" || typeof Object.create !== "function") {
                 throw new Error("Unable to consume source maps in older browsers");
             }
         }
+
         function _ensureStackFrameIsLegit(stackframe) {
             if (typeof stackframe !== "object") {
                 throw new TypeError("Given StackFrame is not an object");
@@ -388,12 +852,12 @@
             }
             return true;
         }
+
         function _findSourceMappingURL(source) {
             var sourceMappingUrlRegExp = /\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/gm;
             var lastSourceMappingUrl;
             var matchSourceMappingUrl;
             while (matchSourceMappingUrl = sourceMappingUrlRegExp.exec(source)) {
-                // jshint ignore:line
                 lastSourceMappingUrl = matchSourceMappingUrl[1];
             }
             if (lastSourceMappingUrl) {
@@ -402,6 +866,7 @@
                 throw new Error("sourceMappingURL not found");
             }
         }
+
         function _extractLocationInfoFromSourceMapSource(stackframe, sourceMapConsumer, sourceCache) {
             return new Promise(function (resolve, reject) {
                 var loc = sourceMapConsumer.originalPositionFor({
@@ -409,33 +874,22 @@
                     column: stackframe.columnNumber
                 });
                 if (loc.source) {
-                    // cache mapped sources
                     var mappedSource = sourceMapConsumer.sourceContentFor(loc.source);
                     if (mappedSource) {
                         sourceCache[loc.source] = mappedSource;
                     }
-                    resolve(// given stackframe and source location, update stackframe
-                        new StackFrame({
-                            functionName: loc.name || stackframe.functionName,
-                            args: stackframe.args,
-                            fileName: loc.source,
-                            lineNumber: loc.line,
-                            columnNumber: loc.column
-                        }));
+                    resolve(new StackFrame({
+                        functionName: loc.name || stackframe.functionName,
+                        args: stackframe.args,
+                        fileName: loc.source,
+                        lineNumber: loc.line,
+                        columnNumber: loc.column
+                    }));
                 } else {
                     reject(new Error("Could not get original source for given stackframe and source map"));
                 }
             });
         }
-        /**
-           * @constructor
-           * @param {Object} opts
-           *      opts.sourceCache = {url: "Source String"} => preload source cache
-           *      opts.sourceMapConsumerCache = {/path/file.js.map: SourceMapConsumer}
-           *      opts.offline = True to prevent network requests.
-           *              Best effort without sources or source maps.
-           *      opts.ajax = Promise returning function to make X-Domain requests
-           */
         return function StackTraceGPS(opts) {
             if (!(this instanceof StackTraceGPS)) {
                 return new StackTraceGPS(opts);
@@ -445,7 +899,6 @@
             this.sourceMapConsumerCache = opts.sourceMapConsumerCache || {};
             this.ajax = opts.ajax || _xdr;
             this._atob = opts.atob || _atob;
-
             this._get = function _get(location) {
                 return new Promise(function (resolve, reject) {
                     var isDataUrl = location.substr(0, 5) === "data:";
@@ -455,8 +908,6 @@
                         reject(new Error("Cannot make network requests in offline mode"));
                     } else {
                         if (isDataUrl) {
-                            // data URLs can have parameters.
-                            // see http://tools.ietf.org/html/rfc2397
                             var supportedEncodingRegexp = /^data:application\/json;([\w=:"-]+;)*base64,/;
                             var match = location.match(supportedEncodingRegexp);
                             if (match) {
@@ -472,21 +923,12 @@
                             var xhrPromise = this.ajax(location, {
                                 method: "get"
                             });
-                            // Cache the Promise to prevent duplicate in-flight requests
                             this.sourceCache[location] = xhrPromise;
                             xhrPromise.then(resolve, reject);
                         }
                     }
                 }.bind(this));
             };
-            /**
-                 * Creating SourceMapConsumers is expensive, so this wraps the creation of a
-                 * SourceMapConsumer in a per-instance cache.
-                 *
-                 * @param {String} sourceMappingURL = URL to fetch source map from
-                 * @param {String} defaultSourceRoot = Default source root for source map if undefined
-                 * @returns {Promise} that resolves a SourceMapConsumer
-                 */
             this._getSourceMapConsumer = function _getSourceMapConsumer(sourceMappingURL, defaultSourceRoot) {
                 return new Promise(function (resolve, reject) {
                     if (this.sourceMapConsumerCache[sourceMappingURL]) {
@@ -508,13 +950,6 @@
                     }
                 }.bind(this));
             };
-            /**
-                 * Given a StackFrame, enhance function name and use source maps for a
-                 * better StackFrame.
-                 *
-                 * @param {StackFrame} stackframe object
-                 * @returns {Promise} that resolves with with source-mapped StackFrame
-                 */
             this.pinpoint = function StackTraceGPS$$pinpoint(stackframe) {
                 return new Promise(function (resolve, reject) {
                     this.getMappedLocation(stackframe).then(function (mappedStackFrame) {
@@ -525,12 +960,6 @@
                     }.bind(this), reject);
                 }.bind(this));
             };
-            /**
-                 * Given a StackFrame, guess function name from location information.
-                 *
-                 * @param {StackFrame} stackframe
-                 * @returns {Promise} that resolves with enhanced StackFrame.
-                 */
             this.findFunctionName = function StackTraceGPS$$findFunctionName(stackframe) {
                 return new Promise(function (resolve, reject) {
                     _ensureStackFrameIsLegit(stackframe);
@@ -538,7 +967,6 @@
                         var lineNumber = stackframe.lineNumber;
                         var columnNumber = stackframe.columnNumber;
                         var guessedFunctionName = _findFunctionName(source, lineNumber, columnNumber);
-                        // Only replace functionName if we found something
                         if (guessedFunctionName) {
                             resolve(new StackFrame({
                                 functionName: guessedFunctionName,
@@ -553,12 +981,6 @@
                     }, reject)["catch"](reject);
                 }.bind(this));
             };
-            /**
-                 * Given a StackFrame, seek source-mapped location and return new enhanced StackFrame.
-                 *
-                 * @param {StackFrame} stackframe
-                 * @returns {Promise} that resolves with enhanced StackFrame.
-                 */
             this.getMappedLocation = function StackTraceGPS$$getMappedLocation(stackframe) {
                 return new Promise(function (resolve, reject) {
                     _ensureSupportedEnvironment();
@@ -582,18 +1004,12 @@
             };
         };
     })(SourceMap, StackFrame);
-
-    //
-    // Shared Variables
-    //
-
     var scriptFile = document.getElementsByTagName('script');
     var scriptIndex = scriptFile.length - 1;
     var myScript = scriptFile[scriptIndex];
     var queryString = myScript.src.replace(/^[^\?]+\??/, '');
     var params = parseQuery(queryString);
     var paramsLength = objectLength(params);
-
     var debugSettings = {
         label: ' elmah.io debugger : On ',
         labelCSS: 'background: #06a89c; color: #ffffff; display: inline-block; font-size: 14px;',
@@ -602,7 +1018,6 @@
         warningCSS: 'background: #fff3cd; color: #856404; display: inline-block; font-size: 13px;',
         lightCSS: 'background: #e2e3e5; color: #383d41; display: inline-block; font-size: 13px;'
     };
-
     var defaults = {
         apiKey: null,
         logId: null,
@@ -610,29 +1025,17 @@
         application: null,
         filter: null
     };
-
-    //
-    // Shared Methods
-    //
-
     var extend = function () {
-
-        // Variables
         var extended = {};
         var deep = false;
         var i = 0;
-
-        // Check if a deep merge
         if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
             deep = arguments[0];
             i++;
         }
-
-        // Merge the object into the extended object
         var merge = function (obj) {
             for (var prop in obj) {
                 if (obj.hasOwnProperty(prop)) {
-                    // If property is an object, merge properties
                     if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
                         extended[prop] = extend(extended[prop], obj[prop]);
                     } else {
@@ -641,24 +1044,16 @@
                 }
             }
         };
-
-        // Loop through each object and conduct a merge
         for (; i < arguments.length; i++) {
             var obj = arguments[i];
             merge(obj);
         }
-
         return extended;
-
     };
-
-    //
-    // Helpers
-    //
 
     function parseQuery(query) {
         var Params = new Object();
-        if (!query) return Params; // return empty object
+        if (!query) return Params;
         var Pairs = query.split(/[;&]/);
         for (var i = 0; i < Pairs.length; i++) {
             var KeyVal = Pairs[i].split('=');
@@ -672,7 +1067,8 @@
     }
 
     function objectLength(obj) {
-        var size = 0, key;
+        var size = 0,
+            key;
         for (key in obj) {
             if (obj.hasOwnProperty(key)) size++;
         }
@@ -705,21 +1101,9 @@
         for (var attrname2 in obj2) {
             obj3[attrname2] = obj2[attrname2];
         }
-
         return obj3;
     }
-
-    //
-    // Constructor
-    // Can be named anything you want
-    //
-
     var Constructor = function (options) {
-
-        //
-        // Unique Variables
-        //
-
         var publicAPIs = {};
         var settings;
 
@@ -728,30 +1112,62 @@
                 "url": document.location.pathname || '/',
                 "application": settings.application
             };
-
             var payload_data = [];
-
-            if (document.documentMode) payload_data.push({ "key": "Document-Mode", "value": document.documentMode });
-            if (window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth) payload_data.push({ "key": "Browser-Width", "value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth });
-            if (window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight) payload_data.push({ "key": "Browser-Height", "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight });
-            if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) !== undefined) payload_data.push({ "key": "Screen-Orientation", "value": ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type).split("-"))[0] });
-            if (screen.width) payload_data.push({ "key": "Screen-Width", "value": screen.width });
-            if (screen.height) payload_data.push({ "key": "Screen-Height", "value": screen.height });
-            if (screen.colorDepth) payload_data.push({ "key": "Color-Depth", "value": screen.colorDepth });
-            payload_data.push({ "key": "X-ELMAHIO-SEARCH-isClientside", "value": "true" });
-
+            if (navigator.language) payload_data.push({
+                "key": "User-Language",
+                "value": navigator.language
+            });
+            if (document.documentMode) payload_data.push({
+                "key": "Document-Mode",
+                "value": document.documentMode
+            });
+            if (window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth) payload_data.push({
+                "key": "Browser-Width",
+                "value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth
+            });
+            if (window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight) payload_data.push({
+                "key": "Browser-Height",
+                "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight
+            });
+            if ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type) !== undefined) payload_data.push({
+                "key": "Screen-Orientation",
+                "value": ((screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type).split("-"))[0]
+            });
+            if (screen.width) payload_data.push({
+                "key": "Screen-Width",
+                "value": screen.width
+            });
+            if (screen.height) payload_data.push({
+                "key": "Screen-Height",
+                "value": screen.height
+            });
+            if (screen.colorDepth) payload_data.push({
+                "key": "Color-Depth",
+                "value": screen.colorDepth
+            });
+            payload_data.push({
+                "key": "X-ELMAHIO-SEARCH-isClientside",
+                "value": "true"
+            });
             payload.data = payload_data;
-
             var payload_serverVariables = [];
-
-            if (navigator.language) payload_serverVariables.push({ "key": "User-Language", "value": navigator.language });
-            if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
-            if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
-            if (document.location.protocol === "https:") payload_serverVariables.push({ "key": "HTTPS", "value": 'on' });
-            if (document.location.hostname) payload_serverVariables.push({ "key": "Host", "value": document.location.hostname });
-
+            if (navigator.userAgent) payload_serverVariables.push({
+                "key": "User-Agent",
+                "value": navigator.userAgent
+            });
+            if (document.referrer) payload_serverVariables.push({
+                "key": "Referer",
+                "value": document.referrer
+            });
+            if (document.location.protocol === "https:") payload_serverVariables.push({
+                "key": "HTTPS",
+                "value": 'on'
+            });
+            if (document.location.hostname) payload_serverVariables.push({
+                "key": "Host",
+                "value": document.location.hostname
+            });
             payload.serverVariables = payload_serverVariables;
-
             return payload;
         }
 
@@ -768,39 +1184,34 @@
         }
 
         function stackGPS(error, xhr, jsonData) {
-        	var errorStack = error.toString().split("\n")[0];
-        	var gps = new StackTraceGPS();
-            var promise = new Promise(function(resolve) {
-	            var stackframes = ErrorStackParser.parse(error);
-	            resolve(Promise.all(stackframes.map(function(sf) {
-	                return new Promise(function(resolve) {
-	                    function resolveOriginal() {
-	                        resolve(sf);
-	                    }
-	                    gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
-	                });
-	            })));
-            	}
-            );
-
-            promise.then(function(newFrames){
-            	newFrames.forEach(function(stackFrame, i){
-					if(stackFrame.functionName) {
-            			var fn = stackFrame.functionName + ' ';
-            		} else {
-            			var fn = '';
-            		}
-            		var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
-            		newFrames[i] = stackString;
-            	});
-            	newFrames.unshift(errorStack);
-            	jsonData.detail = newFrames.join("\n");
-            	xhr.send(JSON.stringify(jsonData));
+            var errorStack = error.toString().split("\n")[0];
+            var gps = new StackTraceGPS();
+            var promise = new Promise(function (resolve) {
+                var stackframes = ErrorStackParser.parse(error);
+                resolve(Promise.all(stackframes.map(function (sf) {
+                    return new Promise(function (resolve) {
+                        function resolveOriginal() {
+                            resolve(sf);
+                        }
+                        gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
+                    });
+                })));
+            });
+            promise.then(function (newFrames) {
+                newFrames.forEach(function (stackFrame, i) {
+                    if (stackFrame.functionName) {
+                        var fn = stackFrame.functionName + ' ';
+                    } else {
+                        var fn = '';
+                    }
+                    var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+                    newFrames[i] = stackString;
+                });
+                newFrames.unshift(errorStack);
+                jsonData.detail = newFrames.join("\n");
+                xhr.send(JSON.stringify(jsonData));
             });
         }
-
-        // Private methods
-
         var sendPayload = function (apiKey, logId, callback, errorLog) {
             var api_key = apiKey,
                 log_id = logId,
@@ -808,29 +1219,20 @@
                 send = 1,
                 queryParams = getSearchParameters(),
                 stack = error.error ? ErrorStackParser.parse(error.error) : '';
-
-            // Ignoring error from an external script
-            if (error && error.colno === 0 && error.lineno === 0 && !stack && stack === '' && error.message && error.message === "Script error.") {
-              if (settings.debug) {
-                  console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
-              }
-              return;
+            if (error && error.colno === 0 && error.lineno === 0 && stack === '' && error.message && error.message === "Script error.") {
+                if (settings.debug) {
+                    console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
+                }
+                return;
             }
-
             if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
-
-                // Priority for parameters
                 if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
                     api_key = params['apiKey'];
                     log_id = params['logId'];
                 }
-
-                // get new XHR object
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "https://api.elmah.io/v3/messages/" + log_id + "?api_key=" + api_key, true);
-
                 xhr.setRequestHeader('Content-type', 'application/json');
-
                 xhr.onload = function (e) {
                     if (xhr.readyState === 4) {
                         if (xhr.status === 201) {
@@ -838,14 +1240,10 @@
                         }
                     }
                 };
-
                 xhr.onerror = function (e) {
                     callback('error', xhr.statusText);
-
-                    // on error event
                     publicAPIs.emit('error', xhr.status, xhr.statusText);
                 }
-
                 var jsonData = {
                     "detail": error.error ? error.error.stack : null,
                     "title": error.message || 'Unspecified error',
@@ -854,35 +1252,24 @@
                     "type": error.error ? error.error.name : null,
                     "queryString": JSON.parse(JSON.stringify(queryParams))
                 };
-
-                // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
-
-                // filter callback
                 if (settings.filter !== null) {
                     if (settings.filter(jsonData)) {
                         send = 0;
                     }
                 }
-
                 if (send === 1) {
-                    // on message event
                     publicAPIs.emit('message', jsonData);
-
                     if (error.error && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-                    	// send message trying to pinpoint stackframes
-                    	stackGPS(error.error, xhr, jsonData);
-	                } else {
-	                	// send message
-                    	xhr.send(JSON.stringify(jsonData));
-	                }
+                        stackGPS(error.error, xhr, jsonData);
+                    } else {
+                        xhr.send(JSON.stringify(jsonData));
+                    }
                 }
-
             } else {
                 return console.log('Login api error');
             }
         };
-
         var sendManualPayload = function (apiKey, logId, callback, logType, messageLog, errorLog) {
             var api_key = apiKey,
                 log_id = logId,
@@ -891,20 +1278,14 @@
                 message = messageLog,
                 send = 1,
                 queryParams = getSearchParameters();
-
             if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
-
-                // Priority for parameters
                 if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
                     api_key = params['apiKey'];
                     log_id = params['logId'];
                 }
-
-                // get new XHR object
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "https://api.elmah.io/v3/messages/" + log_id + "?api_key=" + api_key, true);
                 xhr.setRequestHeader('Content-type', 'application/json');
-
                 xhr.onload = function (e) {
                     if (xhr.readyState === 4) {
                         if (xhr.status === 201) {
@@ -912,18 +1293,12 @@
                         }
                     }
                 };
-
                 xhr.onerror = function (e) {
                     callback('error', xhr.statusText);
-
-                    // on error event
                     publicAPIs.emit('error', xhr.status, xhr.statusText);
                 }
-
                 if (type !== "Log") {
-
                     var stack = error ? ErrorStackParser.parse(error) : null;
-
                     var jsonData = {
                         "title": message,
                         "source": stack && stack.length > 0 ? stack[0].fileName : null,
@@ -932,127 +1307,91 @@
                         "type": error ? error.name : null,
                         "queryString": JSON.parse(JSON.stringify(queryParams))
                     };
-
-                    // Add payload to jsonData
                     jsonData = merge_objects(jsonData, getPayload());
-
                 } else {
-
                     jsonData = error;
-
                 }
-
-                // filter callback
                 if (settings.filter !== null) {
                     if (settings.filter(jsonData)) {
                         send = 0;
                     }
                 }
-
                 if (send === 1) {
                     if (jsonData.title) {
-
-                        // on message event
                         publicAPIs.emit('message', jsonData);
-
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-	    					// send message trying to pinpoint stackframes
-                    		stackGPS(error, xhr, jsonData);
-		                } else {
-		                	// send message
-	                    	xhr.send(JSON.stringify(jsonData));
-		                }
-
+                            stackGPS(error, xhr, jsonData);
+                        } else {
+                            xhr.send(JSON.stringify(jsonData));
+                        }
                     } else {
                         callback('missing-title', xhr.statusText);
                     }
                 }
-
             } else {
                 return console.log('Login api error');
             }
         };
-
-        // Some public methods
-
         publicAPIs.error = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
         };
         publicAPIs.error = function (msg, error) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
         };
-
         publicAPIs.verbose = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg);
         };
         publicAPIs.verbose = function (msg, error) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
         };
-
         publicAPIs.debug = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg);
         };
         publicAPIs.debug = function (msg, error) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
         };
-
         publicAPIs.information = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg);
         };
         publicAPIs.information = function (msg, error) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
         };
-
         publicAPIs.warning = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg);
         };
         publicAPIs.warning = function (msg, error) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
         };
-
         publicAPIs.fatal = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg);
         };
         publicAPIs.fatal = function (msg, error) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
         };
-
         publicAPIs.log = function (obj) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
         };
-
         publicAPIs.on = function (name, callback, ctx) {
             var e = this.e || (this.e = {});
-
             (e[name] || (e[name] = [])).push({
                 fn: callback,
                 ctx: ctx
             });
-
             return this;
         };
-
         publicAPIs.emit = function (name) {
             var data = [].slice.call(arguments, 1);
             var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
             var i = 0;
             var len = evtArr.length;
-
             for (i; i < len; i++) {
                 evtArr[i].fn.apply(evtArr[i].ctx, data);
             }
-
             return this;
         };
-
         publicAPIs.init = function (options) {
-
-            // Merge options into defaults
             settings = extend(defaults, options || {});
-
-            // Code goes here...
             window.onerror = function (message, source, lineno, colno, error) {
-
                 var errorLog = {
                     'message': message,
                     'source': source,
@@ -1060,37 +1399,20 @@
                     'colno': colno,
                     'error': error
                 }
-
                 sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
-
                 return false;
             }
-
         };
-
-        // Initialize the plugin
         publicAPIs.init(options);
-
         if (settings.debug) {
             console.log('%c' + debugSettings.label, debugSettings.labelCSS);
         }
-
-        // Return the public APIs
         return publicAPIs;
-
     };
-
-
-    //
-    // Return the constructor
-    //
-
     if (paramsLength && params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
-        // Immediately-Invoked Function Expression (IIFE)
         return new Constructor;
     } else {
-        // UMD Constructor
         return Constructor;
     }
-
 });
+//# sourceMappingURL=elmahio.js.map
