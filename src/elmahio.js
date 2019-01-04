@@ -731,7 +731,6 @@
 
             var payload_data = [];
 
-            if (navigator.language) payload_data.push({ "key": "User-Language", "value": navigator.language });
             if (document.documentMode) payload_data.push({ "key": "Document-Mode", "value": document.documentMode });
             if (window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth) payload_data.push({ "key": "Browser-Width", "value": window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth });
             if (window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight) payload_data.push({ "key": "Browser-Height", "value": window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight });
@@ -744,6 +743,7 @@
             payload.data = payload_data;
 
             var payload_serverVariables = [];
+            if (navigator.language) payload_serverVariables.push({ "key": "User-Language", "value": navigator.language });
             if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
             if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
             if (document.location.protocol === "https:") payload_serverVariables.push({ "key": "HTTPS", "value": 'on' });
@@ -809,7 +809,7 @@
                 stack = error.error ? ErrorStackParser.parse(error.error) : '';
 
             // Ignoring error from an external script
-            if (error && error.colno === 0 && error.lineno === 0 && stack === '' && error.message && error.message === "Script error.") {
+            if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && error.message === "Script error.") {
 			    if (settings.debug) {
 			        console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
 			    }
