@@ -1219,7 +1219,7 @@
         send = 1,
         queryParams = getSearchParameters(),
         stack = error.error ? ErrorStackParser.parse(error.error) : '';
-      if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && error.message === "Script error.") {
+      if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && error.message === "Script error." && error.message === "Script error") {
         if (settings.debug) {
           console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
         }
