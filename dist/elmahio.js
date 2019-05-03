@@ -1113,10 +1113,6 @@
         "application": settings.application
       };
       var payload_data = [];
-      if (navigator.language) payload_data.push({
-        "key": "User-Language",
-        "value": navigator.language
-      });
       if (document.documentMode) payload_data.push({
         "key": "Document-Mode",
         "value": document.documentMode
@@ -1151,6 +1147,10 @@
       });
       payload.data = payload_data;
       var payload_serverVariables = [];
+      if (navigator.language) payload_serverVariables.push({
+        "key": "User-Language",
+        "value": navigator.language
+      });
       if (navigator.userAgent) payload_serverVariables.push({
         "key": "User-Agent",
         "value": navigator.userAgent
@@ -1219,7 +1219,7 @@
         send = 1,
         queryParams = getSearchParameters(),
         stack = error.error ? ErrorStackParser.parse(error.error) : '';
-      if (error && error.colno === 0 && error.lineno === 0 && stack === '' && error.message && error.message === "Script error.") {
+      if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && (error.message === "Script error." || error.message === "Script error")) {
         if (settings.debug) {
           console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
         }
