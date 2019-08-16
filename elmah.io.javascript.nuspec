@@ -6,6 +6,7 @@
     <owners>elmah.io</owners>
     <id>elmah.io.javascript</id>
     <title>elmah.io.javascript</title>
+    <license type="expression">Apache-2.0</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>elmah.io JavaScript logger.</description>
     <projectUrl>https://elmah.io/</projectUrl>
