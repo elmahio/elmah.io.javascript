@@ -882,7 +882,7 @@
             }
         };
 
-        var sendManualPayload = function (apiKey, logId, callback, logType, messageLog, errorLog) {
+        var sendManualPayload = function (apiKey, logId, callback, logType, messageLog, errorLog, messageData) {
             var api_key = apiKey,
                 log_id = logId,
                 type = logType,
@@ -929,6 +929,7 @@
                         "detail": error ? error.stack : null,
                         "severity": type,
                         "type": error ? error.name : null,
+                        "data": messageData,
                         "queryString": JSON.parse(JSON.stringify(queryParams))
                     };
 
@@ -977,43 +978,43 @@
         publicAPIs.error = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
         };
-        publicAPIs.error = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
+        publicAPIs.error = function (msg, error, data) {
+            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error, data);
         };
 
         publicAPIs.verbose = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg);
         };
-        publicAPIs.verbose = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
+        publicAPIs.verbose = function (msg, error, data) {
+            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error, data);
         };
 
         publicAPIs.debug = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg);
         };
-        publicAPIs.debug = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
+        publicAPIs.debug = function (msg, error, data) {
+            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error, data);
         };
 
         publicAPIs.information = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg);
         };
-        publicAPIs.information = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
+        publicAPIs.information = function (msg, error, data) {
+            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error, data);
         };
 
         publicAPIs.warning = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg);
         };
-        publicAPIs.warning = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
+        publicAPIs.warning = function (msg, error, data) {
+            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error, data);
         };
 
         publicAPIs.fatal = function (msg) {
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg);
         };
-        publicAPIs.fatal = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+        publicAPIs.fatal = function (msg, error, data) {
+            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error, data);
         };
 
         publicAPIs.log = function (obj) {
