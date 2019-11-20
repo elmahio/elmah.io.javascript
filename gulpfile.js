@@ -14,4 +14,4 @@ gulp.task('create-dist', function () {
     .pipe(gulp.dest('dist'))
 });
 
-gulp.task('default', ['create-dist']);
+gulp.task('default', gulp.parallel('create-dist'));
