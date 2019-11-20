@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.0.3
+ * elmah.io Javascript Logger - version 3.1.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1370,6 +1370,9 @@
     };
     publicAPIs.log = function(obj) {
       sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+    };
+    publicAPIs.message = function() {
+      return getPayload();
     };
     publicAPIs.on = function(name, callback, ctx) {
       var e = this.e || (this.e = {});
