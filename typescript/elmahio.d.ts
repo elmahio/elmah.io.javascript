@@ -55,6 +55,10 @@ declare class Elmahio {
      * @param message The Message object to log.
      */
     log(message: Elmahio.Message): void;
+    /**
+     * Create a new message with prefilled values for url, server variables, etc. Set a title and any other values you want to log and send the message as parameter to the log-function.
+     */
+    message(): Elmahio.Message;
 }
 
 declare namespace Elmahio {
