@@ -82,7 +82,7 @@ declare namespace Elmahio {
         /**
          * Implement the 'filter' function to be able to ignore messages before they are logged to elmah.io.
          */
-        filter?(handler: (message: Elmahio.Message) => boolean): void;
+        filter?(message: Elmahio.Message): boolean;
     }
 
     interface Item {
