@@ -17,7 +17,7 @@
   ],
   "homepage": "https://elmah.io",
   "devDependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-beautify": "^2.0.1",
     "gulp-minify": "^3.1.0",
     "gulp-sourcemaps": "^2.6.4",
