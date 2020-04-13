@@ -888,8 +888,6 @@
 	                	// send message
                     	xhr.send(JSON.stringify(jsonData));
 	                }
-
-	                console.log(jsonData);
                 }
 
             } else {
