@@ -799,7 +799,7 @@
         }
 
         function stackString(error) {
-        	return 'Uncaught: ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
+        	return error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
         }
 
         // Private methods
