@@ -798,15 +798,20 @@
             });
         }
 
+        function stackString(error) {
+        	return error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
+        }
+
         // Private methods
 
         var sendPayload = function (apiKey, logId, callback, errorLog) {
+
             var api_key = apiKey,
                 log_id = logId,
                 error = errorLog,
                 send = 1,
                 queryParams = getSearchParameters(),
-                stack = error.error ? ErrorStackParser.parse(error.error) : '';
+                stack = error.error && objectLength(error.error.stack) !== 0 && typeof error.error === "object" ? ErrorStackParser.parse(error.error) : '';
 
             // Ignoring error from an external script
             if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && (error.message === "Script error." || error.message === "Script error")) {
@@ -854,6 +859,14 @@
                     "queryString": JSON.parse(JSON.stringify(queryParams))
                 };
 
+                // Check if error sent is a string and not an object
+                // Then create the articifial stacktrace and pass source & type of the error
+                if(error.error && (objectLength(error.error.stack) === 0) && typeof jsonData.detail === "undefined") {
+                	jsonData.detail = stackString(errorLog);
+                	jsonData.source = errorLog.source;
+                    jsonData.title = "Uncaught: " + errorLog.error;
+                }
+
                 // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
 
@@ -868,7 +881,7 @@
                     // on message event
                     publicAPIs.emit('message', jsonData);
 
-                    if (error.error && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+                    if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                     	// send message trying to pinpoint stackframes
                     	stackGPS(error.error, xhr, jsonData);
 	                } else {
