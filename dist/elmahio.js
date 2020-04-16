@@ -1214,7 +1214,9 @@
     }
 
     function stackString(error) {
-      return error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
+      var typeOF = typeof error.error;
+      var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+      return typeOFCapitalized + ': ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
     }
     var sendPayload = function(apiKey, logId, callback, errorLog) {
       var api_key = apiKey,
@@ -1257,9 +1259,11 @@
           "queryString": JSON.parse(JSON.stringify(queryParams))
         };
         if (error.error && (objectLength(error.error.stack) === 0) && typeof jsonData.detail === "undefined") {
+          var typeOF = typeof errorLog.error;
+          var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
           jsonData.detail = stackString(errorLog);
           jsonData.source = errorLog.source;
-          jsonData.title = "Uncaught: " + errorLog.error;
+          jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
         }
         jsonData = merge_objects(jsonData, getPayload());
         if (settings.filter !== null) {
