@@ -799,7 +799,10 @@
         }
 
         function stackString(error) {
-        	return error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
+        	var typeOF = typeof error.error;
+        	var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+
+        	return typeOFCapitalized + ': ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
         }
 
         // Private methods
@@ -862,9 +865,12 @@
                 // Check if error sent is a string and not an object
                 // Then create the articifial stacktrace and pass source & type of the error
                 if(error.error && (objectLength(error.error.stack) === 0) && typeof jsonData.detail === "undefined") {
+                	var typeOF = typeof errorLog.error;
+        			var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+
                 	jsonData.detail = stackString(errorLog);
                 	jsonData.source = errorLog.source;
-                    jsonData.title = "Uncaught: " + errorLog.error;
+                    jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
                 }
 
                 // Add payload to jsonData
