@@ -1422,6 +1422,20 @@
     publicAPIs.init(options);
     if (settings.debug) {
       console.log('%c' + debugSettings.label, debugSettings.labelCSS);
+      if (settings.apiKey) {
+        if (settings.apiKey.length !== 32) {
+          console.log('%c \u26A0 API Key: ' + '%c The API Key must have exactly 32 characters long ', debugSettings.errorCSS, debugSettings.lightCSS);
+        }
+      } else {
+        console.log('%c \u26A0 API Key: ' + '%c The API Key is not set ', debugSettings.errorCSS, debugSettings.lightCSS);
+      }
+      if (settings.logId) {
+        if (!settings.logId.match(/^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi)) {
+          console.log('%c \u26A0 API Key: ' + '%c The Log ID is not valid ', debugSettings.errorCSS, debugSettings.lightCSS);
+        }
+      } else {
+        console.log('%c \u26A0 Log ID: ' + '%c The Log ID is not set ', debugSettings.errorCSS, debugSettings.lightCSS);
+      }
     }
     return publicAPIs;
   };

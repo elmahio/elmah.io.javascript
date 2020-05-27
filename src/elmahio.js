@@ -767,42 +767,42 @@
         }
 
         function stackGPS(error, xhr, jsonData) {
-        	var errorStack = error.toString().split("\n")[0];
-        	var gps = new StackTraceGPS();
+            var errorStack = error.toString().split("\n")[0];
+            var gps = new StackTraceGPS();
             var promise = new Promise(function(resolve) {
-	            var stackframes = ErrorStackParser.parse(error);
-	            resolve(Promise.all(stackframes.map(function(sf) {
-	                return new Promise(function(resolve) {
-	                    function resolveOriginal() {
-	                        resolve(sf);
-	                    }
-	                    gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
-	                });
-	            })));
-            	}
+                var stackframes = ErrorStackParser.parse(error);
+                resolve(Promise.all(stackframes.map(function(sf) {
+                    return new Promise(function(resolve) {
+                        function resolveOriginal() {
+                            resolve(sf);
+                        }
+                        gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
+                    });
+                })));
+                }
             );
 
             promise.then(function(newFrames){
-            	newFrames.forEach(function(stackFrame, i){
-					if(stackFrame.functionName) {
-            			var fn = stackFrame.functionName + ' ';
-            		} else {
-            			var fn = '';
-            		}
-            		var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
-            		newFrames[i] = stackString;
-            	});
-            	newFrames.unshift(errorStack);
-            	jsonData.detail = newFrames.join("\n");
-            	xhr.send(JSON.stringify(jsonData));
+                newFrames.forEach(function(stackFrame, i){
+                    if(stackFrame.functionName) {
+                        var fn = stackFrame.functionName + ' ';
+                    } else {
+                        var fn = '';
+                    }
+                    var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+                    newFrames[i] = stackString;
+                });
+                newFrames.unshift(errorStack);
+                jsonData.detail = newFrames.join("\n");
+                xhr.send(JSON.stringify(jsonData));
             });
         }
 
         function stackString(error) {
-        	var typeOF = typeof error.error;
-        	var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+            var typeOF = typeof error.error;
+            var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
 
-        	return typeOFCapitalized + ': ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
+            return typeOFCapitalized + ': ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
         }
 
         // Private methods
@@ -818,11 +818,11 @@
 
             // Ignoring error from an external script
             if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && (error.message === "Script error." || error.message === "Script error")) {
-			    if (settings.debug) {
-			        console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
-			    }
-			    return;
-			}
+                if (settings.debug) {
+                    console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
+                }
+                return;
+            }
 
             if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
 
@@ -865,11 +865,11 @@
                 // Check if error sent is a string and not an object
                 // Then create the articifial stacktrace and pass source & type of the error
                 if(error.error && (objectLength(error.error.stack) === 0) && typeof jsonData.detail === "undefined") {
-                	var typeOF = typeof errorLog.error;
-        			var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+                    var typeOF = typeof errorLog.error;
+                    var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
 
-                	jsonData.detail = stackString(errorLog);
-                	jsonData.source = errorLog.source;
+                    jsonData.detail = stackString(errorLog);
+                    jsonData.source = errorLog.source;
                     jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
                 }
 
@@ -888,12 +888,12 @@
                     publicAPIs.emit('message', jsonData);
 
                     if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-                    	// send message trying to pinpoint stackframes
-                    	stackGPS(error.error, xhr, jsonData);
-	                } else {
-	                	// send message
-                    	xhr.send(JSON.stringify(jsonData));
-	                }
+                        // send message trying to pinpoint stackframes
+                        stackGPS(error.error, xhr, jsonData);
+                    } else {
+                        // send message
+                        xhr.send(JSON.stringify(jsonData));
+                    }
                 }
 
             } else {
@@ -974,12 +974,12 @@
                         publicAPIs.emit('message', jsonData);
 
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-	    					// send message trying to pinpoint stackframes
-                    		stackGPS(error, xhr, jsonData);
-		                } else {
-		                	// send message
-	                    	xhr.send(JSON.stringify(jsonData));
-		                }
+                            // send message trying to pinpoint stackframes
+                            stackGPS(error, xhr, jsonData);
+                        } else {
+                            // send message
+                            xhr.send(JSON.stringify(jsonData));
+                        }
 
                     } else {
                         callback('missing-title', xhr.statusText);
@@ -1093,8 +1093,25 @@
         // Initialize the plugin
         publicAPIs.init(options);
 
+        // If debug is true, show some errors
         if (settings.debug) {
             console.log('%c' + debugSettings.label, debugSettings.labelCSS);
+
+            if(settings.apiKey) {
+                if(settings.apiKey.length !== 32) {
+                    console.log('%c \u26A0 API Key: ' + '%c The API Key must have exactly 32 characters long ', debugSettings.errorCSS, debugSettings.lightCSS);
+                }
+            } else {
+                console.log('%c \u26A0 API Key: ' + '%c The API Key is not set ', debugSettings.errorCSS, debugSettings.lightCSS);
+            }
+
+            if(settings.logId) {
+                if(!settings.logId.match(/^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi)) {
+                    console.log('%c \u26A0 API Key: ' + '%c The Log ID is not valid ', debugSettings.errorCSS, debugSettings.lightCSS);
+                }
+            } else {
+                console.log('%c \u26A0 Log ID: ' + '%c The Log ID is not set ', debugSettings.errorCSS, debugSettings.lightCSS);
+            }
         }
 
         // Return the public APIs
