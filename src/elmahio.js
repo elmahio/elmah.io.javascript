@@ -794,6 +794,10 @@
                 });
                 newFrames.unshift(errorStack);
                 jsonData.detail = newFrames.join("\n");
+
+                // on message event
+                publicAPIs.emit('message', jsonData);
+
                 xhr.send(JSON.stringify(jsonData));
             });
         }
@@ -884,13 +888,14 @@
                 }
 
                 if (send === 1) {
-                    // on message event
-                    publicAPIs.emit('message', jsonData);
 
                     if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                         // send message trying to pinpoint stackframes
                         stackGPS(error.error, xhr, jsonData);
                     } else {
+                        // on message event
+                        publicAPIs.emit('message', jsonData);
+
                         // send message
                         xhr.send(JSON.stringify(jsonData));
                     }
@@ -970,13 +975,13 @@
                 if (send === 1) {
                     if (jsonData.title) {
 
-                        // on message event
-                        publicAPIs.emit('message', jsonData);
-
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                             // send message trying to pinpoint stackframes
                             stackGPS(error, xhr, jsonData);
                         } else {
+                            // on message event
+                            publicAPIs.emit('message', jsonData);
+
                             // send message
                             xhr.send(JSON.stringify(jsonData));
                         }
