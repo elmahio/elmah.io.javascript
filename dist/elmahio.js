@@ -1,6 +1,6 @@
 /*!
- * elmah.io Javascript Logger - version 3.1.3
- * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
+ * elmah.io Javascript Logger - version 3.2.0
+ * (c) 2018-2020 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -1209,6 +1209,7 @@
         });
         newFrames.unshift(errorStack);
         jsonData.detail = newFrames.join("\n");
+        publicAPIs.emit('message', jsonData);
         xhr.send(JSON.stringify(jsonData));
       });
     }
@@ -1272,10 +1273,10 @@
           }
         }
         if (send === 1) {
-          publicAPIs.emit('message', jsonData);
           if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
             stackGPS(error.error, xhr, jsonData);
           } else {
+            publicAPIs.emit('message', jsonData);
             xhr.send(JSON.stringify(jsonData));
           }
         }
@@ -1331,10 +1332,10 @@
         }
         if (send === 1) {
           if (jsonData.title) {
-            publicAPIs.emit('message', jsonData);
             if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               stackGPS(error, xhr, jsonData);
             } else {
+              publicAPIs.emit('message', jsonData);
               xhr.send(JSON.stringify(jsonData));
             }
           } else {
