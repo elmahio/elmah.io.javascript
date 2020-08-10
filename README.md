@@ -68,7 +68,7 @@ Where __msg__ is a text string and __error__ is a [JavaScript Error Object](http
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
   logId: 'YOUR-LOG-ID',
-  captureConsoleMinimumLevel: true // or 'debug' to enable it
+  captureConsoleMinimumLevel: 'warn' // or 'debug' to enable it
 });
 
 console.error('This is an %s message.', 'error');
