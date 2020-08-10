@@ -1683,7 +1683,7 @@
         return false;
       }
       if (options.captureConsoleMinimumLevel) {
-        if (options.captureConsoleMinimumLevel === true || options.captureConsoleMinimumLevel === "debug") {
+        if (options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "debug") {
           var _error = console.error;
           console.error = function(errMessage) {
             var errorLog = {

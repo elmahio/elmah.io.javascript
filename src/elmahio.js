@@ -1398,7 +1398,7 @@
             // -- Then log messages into the app.elmah.io
             if(options.captureConsoleMinimumLevel) {
                 // If captureConsoleMinimumLevel: info or debug is set (error, warn)
-                if(options.captureConsoleMinimumLevel === true || options.captureConsoleMinimumLevel === "debug") {
+                if(options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "debug") {
                     // Log console errors
                     var _error = console.error;
                     console.error = function(errMessage){
