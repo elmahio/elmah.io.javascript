@@ -30,7 +30,7 @@ new Elmahio({
   debug: false,
   application: null,
   filter: null,
-  captureConsoleMinimumLevel: false (set it to true or 'debug' to enable it)
+  captureConsoleMinimumLevel: false
 });
 ```
 
