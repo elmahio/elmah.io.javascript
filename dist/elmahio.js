@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.1.3
+ * elmah.io Javascript Logger - version 3.1.4
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1023,7 +1023,8 @@
     logId: null,
     debug: false,
     application: null,
-    filter: null
+    filter: null,
+    captureConsoleMinimumLevel: false
   };
   var extend = function() {
     var extended = {};
@@ -1102,6 +1103,204 @@
       obj3[attrname2] = obj2[attrname2];
     }
     return obj3;
+  }
+  var sprintfjs = function() {
+    'use strict'
+    var app = {};
+    var re = {
+      not_string: /[^s]/,
+      not_bool: /[^t]/,
+      not_type: /[^T]/,
+      not_primitive: /[^v]/,
+      number: /[diefg]/,
+      numeric_arg: /[bcdiefguxX]/,
+      json: /[j]/,
+      not_json: /[^j]/,
+      text: /^[^\x25]+/,
+      modulo: /^\x25{2}/,
+      placeholder: /^\x25(?:([1-9]\d*)\$|\(([^)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-gijostTuvxX])/,
+      key: /^([a-z_][a-z_\d]*)/i,
+      key_access: /^\.([a-z_][a-z_\d]*)/i,
+      index_access: /^\[(\d+)\]/,
+      sign: /^[+-]/,
+      mod: /^\x25\s/,
+      notplaceholder: /^\x25?([^b-gijostTuvxX])/
+    }
+
+    function sprintf(key) {
+      return sprintf_format(sprintf_parse(key), arguments)
+    }
+
+    function vsprintf(fmt, argv) {
+      return sprintf.apply(null, [fmt].concat(argv || []))
+    }
+
+    function sprintf_format(parse_tree, argv) {
+      var cursor = 1,
+        tree_length = parse_tree.length,
+        arg, output = '',
+        i, k, ph, pad, pad_character, pad_length, is_positive, sign;
+      for (i = 0; i < tree_length; i++) {
+        if (typeof parse_tree[i] === 'string') {
+          output += parse_tree[i]
+        } else if (typeof parse_tree[i] === 'object') {
+          ph = parse_tree[i];
+          if (ph.keys) {
+            arg = argv[cursor]
+            for (k = 0; k < ph.keys.length; k++) {
+              if (arg == undefined) {
+                throw new Error(sprintf('[sprintf] Cannot access property "%s" of undefined value "%s"', ph.keys[k], ph.keys[k - 1]))
+              }
+              arg = arg[ph.keys[k]]
+            }
+          } else if (ph.param_no) {
+            arg = argv[ph.param_no]
+          } else {
+            arg = argv[cursor++]
+          }
+          if (re.not_type.test(ph.type) && re.not_primitive.test(ph.type) && arg instanceof Function) {
+            arg = arg()
+          }
+          if (re.numeric_arg.test(ph.type) && (typeof arg !== 'number' && isNaN(arg) && arg === undefined)) {
+            arg = ph.placeholder;
+            ph.type = "s";
+          }
+          if (re.number.test(ph.type)) {
+            is_positive = typeof arg === "string" ? true : arg >= 0
+          }
+          switch (ph.type) {
+            case 'b':
+              arg = parseInt(arg, 10).toString(2)
+              break
+            case 'c':
+              arg = String.fromCharCode(parseInt(arg, 10))
+              break
+            case 'd':
+            case 'i':
+              arg = typeof arg === "number" ? parseInt(arg, 10) : NaN
+              break
+            case 'j':
+              arg = JSON.stringify(arg, null, ph.width ? parseInt(ph.width) : 0)
+              break
+            case 'e':
+              arg = ph.precision ? parseFloat(arg).toExponential(ph.precision) : parseFloat(arg).toExponential()
+              break
+            case 'f':
+              arg = ph.precision ? parseFloat(arg).toFixed(ph.precision) : parseFloat(arg)
+              break
+            case 'g':
+              arg = ph.precision ? String(Number(arg.toPrecision(ph.precision))) : parseFloat(arg)
+              break
+            case 'o':
+              arg = (parseInt(arg, 10) >>> 0).toString(8)
+              break
+            case 's':
+              arg = String(arg)
+              arg = arg === "undefined" ? ph.placeholder : (ph.precision ? arg.substring(0, ph.precision) : arg)
+              break
+            case 't':
+              arg = String(!!arg)
+              arg = (ph.precision ? arg.substring(0, ph.precision) : arg)
+              break
+            case 'T':
+              arg = Object.prototype.toString.call(arg).slice(8, -1).toLowerCase()
+              arg = (ph.precision ? arg.substring(0, ph.precision) : arg)
+              break
+            case 'u':
+              arg = parseInt(arg, 10) >>> 0
+              break
+            case 'v':
+              arg = arg.valueOf()
+              arg = (ph.precision ? arg.substring(0, ph.precision) : arg)
+              break
+            case 'x':
+              arg = (parseInt(arg, 10) >>> 0).toString(16)
+              break
+            case 'X':
+              arg = (parseInt(arg, 10) >>> 0).toString(16).toUpperCase()
+              break
+          }
+          if (re.json.test(ph.type)) {
+            output += arg
+          } else {
+            if (re.number.test(ph.type) && (!is_positive || ph.sign)) {
+              sign = is_positive ? '+' : '-'
+              arg = arg.toString().replace(re.sign, '')
+            } else {
+              sign = ''
+            }
+            pad_character = ph.pad_char ? ph.pad_char === '0' ? '0' : ph.pad_char.charAt(1) : ' '
+            pad_length = ph.width - (sign + arg).length
+            pad = ph.width ? (pad_length > 0 ? pad_character.repeat(pad_length) : '') : ''
+            output += ph.align ? sign + arg + pad : (pad_character === '0' ? sign + pad + arg : pad + sign + arg)
+          }
+        }
+      }
+      return output
+    }
+    var sprintf_cache = Object.create(null)
+
+    function sprintf_parse(fmt) {
+      var _fmt = fmt,
+        match, parse_tree = [],
+        arg_names = 0;
+      while (_fmt) {
+        if ((match = re.text.exec(_fmt)) !== null) {
+          parse_tree.push(match[0]);
+        } else if ((match = re.modulo.exec(_fmt)) !== null) {
+          parse_tree.push('%');
+        } else if ((match = re.placeholder.exec(_fmt)) !== null) {
+          if (match[2]) {
+            arg_names |= 1
+            var field_list = [],
+              replacement_field = match[2],
+              field_match = []
+            if ((field_match = re.key.exec(replacement_field)) !== null) {
+              field_list.push(field_match[1])
+              while ((replacement_field = replacement_field.substring(field_match[0].length)) !== '') {
+                if ((field_match = re.key_access.exec(replacement_field)) !== null) {
+                  field_list.push(field_match[1])
+                } else if ((field_match = re.index_access.exec(replacement_field)) !== null) {
+                  field_list.push(field_match[1])
+                } else {
+                  throw new SyntaxError('[sprintf] failed to parse named argument key')
+                }
+              }
+            } else {
+              throw new SyntaxError('[sprintf] failed to parse named argument key')
+            }
+            match[2] = field_list
+          } else {
+            arg_names |= 2
+          }
+          if (arg_names === 3) {
+            throw new Error('[sprintf] mixing positional and named placeholders is not (yet) supported')
+          }
+          parse_tree.push({
+            placeholder: match[0],
+            param_no: match[1],
+            keys: match[2],
+            sign: match[3],
+            pad_char: match[4],
+            align: match[5],
+            width: match[6],
+            precision: match[7],
+            type: match[8]
+          })
+        } else if ((match = re.mod.exec(_fmt)) !== null) {
+          parse_tree.push(match[0]);
+        } else if ((match = re.notplaceholder.exec(_fmt)) !== null) {
+          parse_tree.push(match[0]);
+        } else {
+          throw new SyntaxError('[sprintf] unexpected placeholder')
+        }
+        _fmt = _fmt.substring(match[0].length)
+      }
+      return parse_tree
+    }
+    app.sprintf = sprintf;
+    app.vsprintf = vsprintf;
+    return app;
   }
   var Constructor = function(options) {
     var publicAPIs = {};
@@ -1345,6 +1544,71 @@
         return console.log('Login api error');
       }
     };
+    var sendPayloadFromConsole = function(apiKey, logId, callback, logType, errorLog) {
+      var api_key = apiKey,
+        log_id = logId,
+        message = errorLog.message,
+        messageTemplate = errorLog.message,
+        type = logType,
+        args = Object.values(errorLog.arguments),
+        send = 1,
+        queryParams = getSearchParameters();
+      if (String(message).match(/(%d|%s)+/ig) && args.length > 1) {
+        var sprintfJS = new sprintfjs();
+        args.shift();
+        message = sprintfJS.vsprintf(message, args);
+      }
+      if (typeof message !== "string") {
+        message = message.toString();
+      }
+      if (typeof messageTemplate !== "string") {
+        messageTemplate = messageTemplate.toString();
+      }
+      if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
+        if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
+          api_key = params['apiKey'];
+          log_id = params['logId'];
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://api.elmah.io/v3/messages/" + log_id + "?api_key=" + api_key, true);
+        xhr.setRequestHeader('Content-type', 'application/json');
+        xhr.onload = function(e) {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 201) {
+              callback('success', xhr.statusText);
+            }
+          }
+        };
+        xhr.onerror = function(e) {
+          callback('error', xhr.statusText);
+          publicAPIs.emit('error', xhr.status, xhr.statusText);
+        }
+        var jsonData = {
+          "title": message,
+          "titleTemplate": messageTemplate,
+          "detail": new Error().stack,
+          "severity": type,
+          "type": null,
+          "queryString": JSON.parse(JSON.stringify(queryParams))
+        };
+        jsonData = merge_objects(jsonData, getPayload());
+        if (settings.filter !== null) {
+          if (settings.filter(jsonData)) {
+            send = 0;
+          }
+        }
+        if (send === 1) {
+          if (jsonData.title) {
+            publicAPIs.emit('message', jsonData);
+            xhr.send(JSON.stringify(jsonData));
+          } else {
+            callback('missing-title', xhr.statusText);
+          }
+        }
+      } else {
+        return console.log('Login api error');
+      }
+    };
     publicAPIs.error = function(msg) {
       sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
     };
@@ -1418,24 +1682,52 @@
         sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
         return false;
       }
+      if (options.captureConsoleMinimumLevel) {
+        if (options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "debug") {
+          var _error = console.error;
+          console.error = function(errMessage) {
+            var errorLog = {
+              'message': errMessage,
+              'arguments': arguments
+            }
+            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
+            _error.apply(console, arguments);
+          };
+          var _warning = console.warn;
+          console.warn = function(warnMessage) {
+            var errorLog = {
+              'message': warnMessage,
+              'arguments': arguments
+            }
+            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+            _warning.apply(console, arguments);
+          };
+        }
+        if (options.captureConsoleMinimumLevel === "debug") {
+          var _info = console.info;
+          console.info = function(infoMessage) {
+            var errorLog = {
+              'message': infoMessage,
+              'arguments': arguments
+            }
+            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
+            _info.apply(console, arguments);
+          };
+          var _debug = console.debug;
+          console.debug = function(debugMessage) {
+            var errorLog = {
+              'message': debugMessage,
+              'arguments': arguments
+            }
+            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Debug', errorLog);
+            _debug.apply(console, arguments);
+          };
+        }
+      }
     };
     publicAPIs.init(options);
     if (settings.debug) {
       console.log('%c' + debugSettings.label, debugSettings.labelCSS);
-      if (settings.apiKey) {
-        if (settings.apiKey.length !== 32) {
-          console.log('%c \u26A0 API Key: ' + '%c The API Key must have exactly 32 characters long ', debugSettings.errorCSS, debugSettings.lightCSS);
-        }
-      } else {
-        console.log('%c \u26A0 API Key: ' + '%c The API Key is not set ', debugSettings.errorCSS, debugSettings.lightCSS);
-      }
-      if (settings.logId) {
-        if (!settings.logId.match(/^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi)) {
-          console.log('%c \u26A0 API Key: ' + '%c The Log ID is not valid ', debugSettings.errorCSS, debugSettings.lightCSS);
-        }
-      } else {
-        console.log('%c \u26A0 Log ID: ' + '%c The Log ID is not set ', debugSettings.errorCSS, debugSettings.lightCSS);
-      }
     }
     return publicAPIs;
   };
