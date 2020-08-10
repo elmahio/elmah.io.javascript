@@ -29,7 +29,8 @@ new Elmahio({
   logId: null,
   debug: false,
   application: null,
-  filter: null
+  filter: null,
+  captureConsoleMinimumLevel: false (set it to true or 'debug' to enable it)
 });
 ```
 
@@ -60,6 +61,21 @@ log.fatal(msg);
 log.fatal(msg, error);
 ```
 Where __msg__ is a text string and __error__ is a [JavaScript Error Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
+
+### Manual logging using console logging
+*Works only with UMD Constructor !*
+```javascript
+var log = new Elmahio({
+  apiKey: 'YOUR-API-KEY',
+  logId: 'YOUR-LOG-ID',
+  captureConsoleMinimumLevel: true // or 'debug' to enable it
+});
+
+console.error('This is an %s message.', 'error');
+console.warn('This is a %s message.', 'warning');
+console.info('This is an %s message.', 'information');
+console.debug('This is a %s message.', 'debug');
+```
 
 ### Acknowledgments
 
