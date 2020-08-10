@@ -71,10 +71,10 @@ var log = new Elmahio({
   captureConsoleMinimumLevel: 'warn' // or 'debug' to enable it
 });
 
-console.error('This is an %s message.', 'error');
-console.warn('This is a %s message.', 'warning');
-console.info('This is an %s message.', 'information');
-console.debug('This is a %s message.', 'debug');
+console.error('This is an %s message.', 'error'); // captureConsoleMinimumLevel: 'warn' & 'debug'
+console.warn('This is a %s message.', 'warning'); // captureConsoleMinimumLevel: 'warn' & 'debug'
+console.info('This is an %s message.', 'information'); // captureConsoleMinimumLevel: 'debug'
+console.debug('This is a %s message.', 'debug'); // captureConsoleMinimumLevel: 'debug'
 ```
 
 ### Acknowledgments
