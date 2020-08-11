@@ -1024,7 +1024,7 @@
     debug: false,
     application: null,
     filter: null,
-    captureConsoleMinimumLevel: false
+    captureConsoleMinimumLevel: 'none'
   };
   var extend = function() {
     var extended = {};
@@ -1682,8 +1682,9 @@
         sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
         return false;
       }
-      if (options.captureConsoleMinimumLevel) {
-        if (options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "debug") {
+      if (options.captureConsoleMinimumLevel !== "none") {
+        console.log(options.captureConsoleMinimumLevel);
+        if (options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "error" || options.captureConsoleMinimumLevel === "debug") {
           var _error = console.error;
           console.error = function(errMessage) {
             var errorLog = {
@@ -1693,17 +1694,19 @@
             sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
             _error.apply(console, arguments);
           };
-          var _warning = console.warn;
-          console.warn = function(warnMessage) {
-            var errorLog = {
-              'message': warnMessage,
-              'arguments': arguments
-            }
-            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
-            _warning.apply(console, arguments);
-          };
+          if (options.captureConsoleMinimumLevel !== "error") {
+            var _warning = console.warn;
+            console.warn = function(warnMessage) {
+              var errorLog = {
+                'message': warnMessage,
+                'arguments': arguments
+              }
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+              _warning.apply(console, arguments);
+            };
+          }
         }
-        if (options.captureConsoleMinimumLevel === "debug") {
+        if (options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "debug") {
           var _info = console.info;
           console.info = function(infoMessage) {
             var errorLog = {
@@ -1713,6 +1716,8 @@
             sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
             _info.apply(console, arguments);
           };
+        }
+        if (options.captureConsoleMinimumLevel === "debug") {
           var _debug = console.debug;
           console.debug = function(debugMessage) {
             var errorLog = {

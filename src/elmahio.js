@@ -609,7 +609,7 @@
         debug: false,
         application: null,
         filter: null,
-        captureConsoleMinimumLevel: false
+        captureConsoleMinimumLevel: 'none'
     };
 
     //
@@ -1396,9 +1396,12 @@
 
             // -- Overriding console methods
             // -- Then log messages into the app.elmah.io
-            if(options.captureConsoleMinimumLevel) {
+            if(options.captureConsoleMinimumLevel !== "none") {
+
+                console.log(options.captureConsoleMinimumLevel);
+
                 // If captureConsoleMinimumLevel: info or debug is set (error, warn)
-                if(options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "debug") {
+                if(options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "error" || options.captureConsoleMinimumLevel === "debug") {
                     // Log console errors
                     var _error = console.error;
                     console.error = function(errMessage){
@@ -1409,19 +1412,20 @@
                         sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
                         _error.apply(console, arguments);
                     };
-                    // Log console warnings
-                    var _warning = console.warn;
-                    console.warn = function(warnMessage){
-                        var errorLog = {
-                    		'message': warnMessage,
-                    		'arguments': arguments
-                    	}
-                        sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
-                        _warning.apply(console, arguments);
-                    };
+                    if(options.captureConsoleMinimumLevel !== "error") {
+                        // Log console warnings
+                        var _warning = console.warn;
+                        console.warn = function(warnMessage){
+                            var errorLog = {
+                                'message': warnMessage,
+                                'arguments': arguments
+                            }
+                            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+                            _warning.apply(console, arguments);
+                        };
+                    }
                 }
-                // If captureConsoleMinimumLevel: debug is set (debug, info)
-                if(options.captureConsoleMinimumLevel === "debug") {
+                if(options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "debug") {
                     // Log console info
                     var _info = console.info;
                     console.info = function(infoMessage){
@@ -1432,6 +1436,8 @@
                         sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
                         _info.apply(console, arguments);
                     };
+                }
+                if(options.captureConsoleMinimumLevel === "debug") {
                     // Log console debug
                     var _debug = console.debug;
                     console.debug = function(debugMessage){
