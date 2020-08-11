@@ -30,7 +30,7 @@ new Elmahio({
   debug: false,
   application: null,
   filter: null,
-  captureConsoleMinimumLevel: false
+  captureConsoleMinimumLevel: 'none'
 });
 ```
 
@@ -68,11 +68,14 @@ Where __msg__ is a text string and __error__ is a [JavaScript Error Object](http
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
   logId: 'YOUR-LOG-ID',
-  captureConsoleMinimumLevel: 'warn' // or 'debug' to enable it
+  captureConsoleMinimumLevel: 'debug' // options available: 'none', 'debug', 'info', 'warn', 'error'
 });
 
-// captureConsoleMinimumLevel: 'warn' will enable - console.error, console.warn;
-// captureConsoleMinimumLevel: 'debug' will enable all of them - console.error, console.warn, console.info, console.debug.
+// captureConsoleMinimumLevel: 'none' will disable logging from console;
+// captureConsoleMinimumLevel: 'debug' will enable all of them - console.debug, console.info, console.warn, console.error;
+// captureConsoleMinimumLevel: 'info' will enable - console.info, console.warn, console.error;
+// captureConsoleMinimumLevel: 'warn' will enable - console.warn, console.error;
+// captureConsoleMinimumLevel: 'error' will enable - console.error.
 
 console.error('This is an %s message.', 'error');
 console.warn('This is a %s message.', 'warning');
