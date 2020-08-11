@@ -63,7 +63,8 @@ log.fatal(msg, error);
 Where __msg__ is a text string and __error__ is a [JavaScript Error Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
 
 ### Manual logging using console logging
-*Works only with UMD Constructor !*
+*Works only with UMD Constructor !
+console.log() is not available for logging !*
 ```javascript
 var log = new Elmahio({
   apiKey: 'YOUR-API-KEY',
