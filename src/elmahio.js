@@ -1262,10 +1262,20 @@
                     publicAPIs.emit('error', xhr.status, xhr.statusText);
                 }
 
+                function manipulateStack (errorStack) {
+                    var stack = [];
+                    for (var i = 0; i < errorStack.length; i++) {
+                        if(!errorStack[i].match(/elmahio.js|elmahio.min.js/g)) {
+                            stack.push(errorStack[i]);
+                        }
+                    }
+                    return stack.join('\n');
+                }
+
                 var jsonData = {
                     "title": message,
                     "titleTemplate": messageTemplate,
-                    "detail": new Error().stack,
+                    "detail": manipulateStack(new Error().stack.split('\n')),
                     "severity": type,
                     "type": null,
                     "queryString": JSON.parse(JSON.stringify(queryParams))
@@ -1397,8 +1407,6 @@
             // -- Overriding console methods
             // -- Then log messages into the app.elmah.io
             if(options.captureConsoleMinimumLevel !== "none") {
-
-                console.log(options.captureConsoleMinimumLevel);
 
                 // If captureConsoleMinimumLevel: info or debug is set (error, warn)
                 if(options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "error" || options.captureConsoleMinimumLevel === "debug") {
