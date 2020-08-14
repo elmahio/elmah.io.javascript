@@ -1262,10 +1262,13 @@
                     publicAPIs.emit('error', xhr.status, xhr.statusText);
                 }
 
-                function manipulateStack (errorStack) {
+                function manipulateStack (errorStack, severity, message) {
                     var stack = [];
                     for (var i = 0; i < errorStack.length; i++) {
-                        if(!errorStack[i].match(/elmahio.js|elmahio.min.js/g)) {
+                        if(errorStack[i] === "Error") {
+                            stack.push(severity + ": " + message);
+                        }
+                        if(!errorStack[i].match(/elmahio.js|elmahio.min.js/g) && errorStack[i] !== "Error") {
                             stack.push(errorStack[i]);
                         }
                     }
@@ -1275,7 +1278,7 @@
                 var jsonData = {
                     "title": message,
                     "titleTemplate": messageTemplate,
-                    "detail": manipulateStack(new Error().stack.split('\n')),
+                    "detail": manipulateStack(new Error().stack.split('\n'), type, message),
                     "severity": type,
                     "type": null,
                     "queryString": JSON.parse(JSON.stringify(queryParams))
