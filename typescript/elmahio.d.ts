@@ -83,6 +83,11 @@ declare namespace Elmahio {
          * Implement the 'filter' function to be able to ignore messages before they are logged to elmah.io.
          */
         filter?(message: Elmahio.Message): boolean;
+        /**
+         * Log console.debug, console.info, console.warn, and console.error to elmah.io.
+         * Can have one of the following values: 'none', 'debug', 'info', 'warn', 'error'. Default is 'none'.
+         */
+        captureConsoleMinimumLevel?: string;
     }
 
     interface Item {
