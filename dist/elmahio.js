@@ -1695,7 +1695,7 @@
         sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
         return false;
       }
-      if (options.captureConsoleMinimumLevel !== "none") {
+      if (options && options.captureConsoleMinimumLevel !== "none") {
         if (options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "error" || options.captureConsoleMinimumLevel === "debug") {
           var _error = console.error;
           console.error = function(errMessage) {

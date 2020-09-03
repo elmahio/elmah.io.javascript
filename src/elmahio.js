@@ -1409,7 +1409,7 @@
 
             // -- Overriding console methods
             // -- Then log messages into the app.elmah.io
-            if(options.captureConsoleMinimumLevel !== "none") {
+            if(options && options.captureConsoleMinimumLevel !== "none") {
 
                 // If captureConsoleMinimumLevel: info or debug is set (error, warn)
                 if(options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "error" || options.captureConsoleMinimumLevel === "debug") {
