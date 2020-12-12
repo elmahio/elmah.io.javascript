@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.3.1
+ * elmah.io Javascript Logger - version 3.3.2
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1417,6 +1417,19 @@
       var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
       return typeOFCapitalized + ': ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
     }
+
+    function manipulateStack(errorStack, severity, message) {
+      var stack = [];
+      for (var i = 0; i < errorStack.length; i++) {
+        if (errorStack[i] === "Error") {
+          stack.push(severity + ": " + message);
+        }
+        if (!errorStack[i].match(/elmahio.js|elmahio.min.js/g) && errorStack[i] !== "Error") {
+          stack.push(errorStack[i]);
+        }
+      }
+      return stack.join('\n');
+    }
     var sendPayload = function(apiKey, logId, callback, errorLog) {
       var api_key = apiKey,
         log_id = logId,
@@ -1582,19 +1595,6 @@
         xhr.onerror = function(e) {
           callback('error', xhr.statusText);
           publicAPIs.emit('error', xhr.status, xhr.statusText);
-        }
-
-        function manipulateStack(errorStack, severity, message) {
-          var stack = [];
-          for (var i = 0; i < errorStack.length; i++) {
-            if (errorStack[i] === "Error") {
-              stack.push(severity + ": " + message);
-            }
-            if (!errorStack[i].match(/elmahio.js|elmahio.min.js/g) && errorStack[i] !== "Error") {
-              stack.push(errorStack[i]);
-            }
-          }
-          return stack.join('\n');
         }
         var jsonData = {
           "title": message,
