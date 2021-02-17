@@ -58,7 +58,7 @@ declare class Elmahio {
     /**
      * Create a new message with prefilled values for url, server variables, etc. Set a title and any other values you want to log and send the message as parameter to the log-function.
      */
-    message(): Elmahio.Message;
+    message(error?: Error): Elmahio.Message;
 }
 
 declare namespace Elmahio {
@@ -113,6 +113,10 @@ declare namespace Elmahio {
          */
         title: string;
         /**
+         * The title template of the message to log. This property can be used from logging frameworks that supports structured logging like: "{user} says {quote}". In the example, titleTemplate will be this string and title will be "Gilfoyle says It's not magic. It's talent and sweat".
+         */
+        titleTemplate: string;
+        /**
          * The source of the code logging the message. This could be the assembly name.
          */
         source: string;
@@ -148,6 +152,10 @@ declare namespace Elmahio {
          * Versions can be used to distinguish messages from different versions of your software. The value of version can be a SemVer compliant string or any other syntax that you are using as your version numbering scheme.
          */
         version: string;
+        /**
+         * CorrelationId can be used to group similar log messages together into a single discoverable batch. A correlation ID could be a session ID from ASP.NET Core, a unique string spanning multiple microsservices handling the same request, or similar.
+         */
+        correlationId: string;
         /**
          * A key/value pair of cookies. This property only makes sense for logging messages related to web requests.
          */

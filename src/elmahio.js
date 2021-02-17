@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.3.2
+ * elmah.io Javascript Logger - version 3.4.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
@@ -1310,6 +1310,25 @@
             }
         };
 
+        var sendPrefilledLogMessage = function(errorLog) {
+            // without error object
+            if(!errorLog) return getPayload();
+
+            // with error object
+            var error = errorLog;
+            var stack = error ? ErrorStackParser.parse(error) : null;
+            var jsonData = {
+                "title": error.message,
+                "source": stack && stack.length > 0 ? stack[0].fileName : null,
+                "detail": error ? error.stack : null,
+                "severity": "Error",
+                "type": error ? error.name : null
+            };
+
+            jsonData = merge_objects(jsonData, getPayload());
+            return jsonData;
+        }
+
         // Some public methods
 
         publicAPIs.error = function (msg) {
@@ -1358,8 +1377,8 @@
             sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
         };
 
-        publicAPIs.message = function() {
-            return getPayload();
+        publicAPIs.message = function(error) {
+            return sendPrefilledLogMessage(error);
         };
 
         publicAPIs.on = function (name, callback, ctx) {
