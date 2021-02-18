@@ -1547,7 +1547,13 @@
             if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               stackGPS(error, xhr, jsonData);
             } else {
-              xhr.send(JSON.stringify(jsonData));
+              if (jsonData.errorObject) {
+                error = jsonData.errorObject;
+                delete jsonData.errorObject;
+                stackGPS(error, xhr, jsonData);
+              } else {
+                xhr.send(JSON.stringify(jsonData));
+              }
             }
           } else {
             callback('missing-title', xhr.statusText);
@@ -1631,7 +1637,8 @@
         "source": stack && stack.length > 0 ? stack[0].fileName : null,
         "detail": error ? error.stack : null,
         "severity": "Error",
-        "type": error ? error.name : null
+        "type": error ? error.name : null,
+        "errorObject": error
       };
       jsonData = merge_objects(jsonData, getPayload());
       return jsonData;
