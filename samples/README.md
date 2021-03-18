@@ -9,3 +9,4 @@ This directory contains samples to show how to integrate elmah.io from JavaScrip
 * **Elmah.Io.JavaScript.AspNetCore** - Integrate an ASP.NET Core application with elmah.io.javascript.
 * **Elmah.Io.JavaScript.Mvc** - Integrate an ASP.NET MVC application with elmah.io.javascript.
 * **Elmah.Io.JavaScript.React** - Integrate a React application with elmah.io.javascript.
+* **Elmah.Io.JavaScript.VueJs** - Integrate a Vue.js application with elmah.io.javascript.
