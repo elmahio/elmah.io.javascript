@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.4.1
+ * elmah.io Javascript Logger - version 3.4.2
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
@@ -1189,22 +1189,27 @@
         var breadcrumbXHRHandler = function(evt, method, url) {
             var status = evt.srcElement.status,
                 severity = null,
-                method = method,
-                url = url;
+                method = method.toUpperCase(),
+                url = url,
+                regex = /https:\/\/api.elmah.io/g;
 
-            if (status > 0 && status < 400) {
-                severity = "Information";
-            } else if (status > 399 && status < 500) {
-                severity = "Warning";
-            } else if (status >= 500) {
-                severity = "Error";
+            if(url.match(regex) == null) { 
+                if (status > 0 && status < 400) {
+                    severity = "Information";
+                } else if (status > 399 && status < 500) {
+                    severity = "Warning";
+                } else if (status >= 500) {
+                    severity = "Error";
+                }
+
+                var statusCode = status > 0 ? " (" + status + ")" : "";
+
+                recordBreadcrumb({
+                    "severity": severity,
+                    "action": "Request",
+                    "message": "[" + method + "] " + url + statusCode
+                });
             }
-
-            recordBreadcrumb({
-                "severity": severity,
-                "action": "Request",
-                "message": "[" + method + "] " + url + " (" + status + ")"
-            });
         }
 
         var sendPayload = function (apiKey, logId, callback, errorLog) {

@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.4.1
+ * elmah.io Javascript Logger - version 3.4.2
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1024,7 +1024,8 @@
     debug: false,
     application: null,
     filter: null,
-    captureConsoleMinimumLevel: 'none'
+    captureConsoleMinimumLevel: 'none',
+    breadcrumbs: false
   };
   var extend = function() {
     var extended = {};
@@ -1302,9 +1303,67 @@
     app.vsprintf = vsprintf;
     return app;
   }
+
+  function isString(what) {
+    return Object.prototype.toString.call(what) === '[object String]';
+  }
+
+  function cssSelectorString(elem) {
+    var MAX_TRAVERSE_HEIGHT = 5,
+      MAX_OUTPUT_LEN = 80,
+      out = [],
+      height = 0,
+      len = 0,
+      separator = ' > ',
+      sepLength = separator.length,
+      nextStr;
+    while (elem && height++ < MAX_TRAVERSE_HEIGHT) {
+      nextStr = htmlElementAsString(elem);
+      if (nextStr === 'html' || (height > 1 && len + out.length * sepLength + nextStr.length >= MAX_OUTPUT_LEN)) {
+        break;
+      }
+      out.push(nextStr);
+      len += nextStr.length;
+      elem = elem.parentNode;
+    }
+    return out.reverse().join(separator);
+  }
+
+  function htmlElementAsString(elem) {
+    var out = [],
+      className, classes, key, attr, i;
+    if (!elem || !elem.tagName) {
+      return '';
+    }
+    out.push(elem.tagName.toLowerCase());
+    if (elem.id) {
+      out.push('#' + elem.id);
+    }
+    className = elem.className;
+    if (className && isString(className)) {
+      classes = className.split(/\s+/);
+      for (i = 0; i < classes.length; i++) {
+        out.push('.' + classes[i]);
+      }
+    }
+    var attrWhitelist = ['type', 'name', 'title', 'alt'];
+    for (i = 0; i < attrWhitelist.length; i++) {
+      key = attrWhitelist[i];
+      attr = elem.getAttribute(key);
+      if (attr) {
+        out.push('[' + key + '="' + attr + '"]');
+      }
+    }
+    return out.join('');
+  }
+  var parseHash = function(url) {
+    return url.split('#')[1] || '';
+  };
   var Constructor = function(options) {
     var publicAPIs = {};
     var settings;
+    var breadcrumbs = [];
+    var lastHref = window.location && window.location.href;
 
     function getPayload() {
       var payload = {
@@ -1430,6 +1489,110 @@
       }
       return stack.join('\n');
     }
+    var recordBreadcrumb = function(obj) {
+      var crumb = merge_objects({
+        'dateTime': new Date().toISOString()
+      }, obj);
+      breadcrumbs.push(crumb);
+      if (breadcrumbs.length > 10) {
+        breadcrumbs.shift();
+      }
+      console.log(breadcrumbs);
+    }
+    var breadcrumbClickEventHandler = function(evt) {
+      var target;
+      try {
+        target = cssSelectorString(evt.target);
+      } catch (e) {
+        target = "<unknown_target>";
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Click",
+        "message": target
+      });
+    }
+    var breadcrumbFormSubmitEventHandler = function(evt) {
+      var target;
+      try {
+        target = cssSelectorString(evt.target);
+      } catch (e) {
+        target = "<unknown_target>";
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Form submit",
+        "message": target
+      });
+    }
+    var breadcrumbWindowEventHandler = function(evt) {
+      var type = evt.type,
+        message = null;
+      switch (type) {
+        case "load":
+          message = "Page loaded";
+          break;
+        case "DOMContentLoaded":
+          message = "DOMContentLoaded";
+          break;
+        case "pageshow":
+          message = "Page shown";
+          break;
+        case "pagehide":
+          message = "Page hidden";
+          break;
+        case "popstate":
+          message = "Navigated from: " + lastHref + " to: " + window.location.href;
+          break;
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Navigation",
+        "message": message
+      });
+    }
+    var breadcrumbHashChangeEventHandler = function(evt) {
+      var oldURL = evt.oldURL,
+        newURL = evt.newURL,
+        from = null,
+        to = null,
+        message = null;
+      if (oldURL && newURL) {
+        from = parseHash(oldURL);
+        to = parseHash(newURL);
+        message = "from: '" + from + "' to: '" + to + "'";
+      } else {
+        to = location.hash;
+        message = "to: '" + to + "'";
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Navigation",
+        "message": "Hash changed " + message
+      });
+    }
+    var breadcrumbXHRHandler = function(evt, method, url) {
+      var status = evt.srcElement.status,
+        severity = null,
+        method = method.toUpperCase(),
+        url = url,
+        regex = /https:\/\/api.elmah.io/g;
+      if (url.match(regex) == null) {
+        if (status > 0 && status < 400) {
+          severity = "Information";
+        } else if (status > 399 && status < 500) {
+          severity = "Warning";
+        } else if (status >= 500) {
+          severity = "Error";
+        }
+        var statusCode = status > 0 ? " (" + status + ")" : "";
+        recordBreadcrumb({
+          "severity": severity,
+          "action": "Request",
+          "message": "[" + method + "] " + url + statusCode
+        });
+      }
+    }
     var sendPayload = function(apiKey, logId, callback, errorLog) {
       var api_key = apiKey,
         log_id = logId,
@@ -1478,6 +1641,10 @@
           jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
         }
         jsonData = merge_objects(jsonData, getPayload());
+        if (breadcrumbs.length > 0) {
+          jsonData.breadcrumbs = breadcrumbs;
+          breadcrumbs = [];
+        }
         if (settings.filter !== null) {
           if (settings.filter(jsonData)) {
             send = 0;
@@ -1544,6 +1711,10 @@
         if (send === 1) {
           if (jsonData.title) {
             publicAPIs.emit('message', jsonData);
+            if (breadcrumbs.length > 0) {
+              jsonData.breadcrumbs = breadcrumbs;
+              breadcrumbs = [];
+            }
             if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               stackGPS(error, xhr, jsonData);
             } else {
@@ -1611,6 +1782,10 @@
           "queryString": JSON.parse(JSON.stringify(queryParams))
         };
         jsonData = merge_objects(jsonData, getPayload());
+        if (breadcrumbs.length > 0) {
+          jsonData.breadcrumbs = breadcrumbs;
+          breadcrumbs = [];
+        }
         if (settings.filter !== null) {
           if (settings.filter(jsonData)) {
             send = 0;
@@ -1641,6 +1816,10 @@
         "errorObject": error
       };
       jsonData = merge_objects(jsonData, getPayload());
+      if (breadcrumbs.length > 0) {
+        jsonData.breadcrumbs = breadcrumbs;
+        breadcrumbs = [];
+      }
       return jsonData;
     }
     publicAPIs.error = function(msg) {
@@ -1685,6 +1864,13 @@
     publicAPIs.message = function(error) {
       return sendPrefilledLogMessage(error);
     };
+    publicAPIs.addBreadcrumb = function(severity, evt, msg) {
+      recordBreadcrumb({
+        "severity": (severity != undefined && isString(severity)) ? severity : "Information",
+        "action": (evt != undefined && isString(evt)) ? evt : "Log",
+        "message": (msg != undefined && isString(msg)) ? msg : "This is just a test message."
+      });
+    };
     publicAPIs.on = function(name, callback, ctx) {
       var e = this.e || (this.e = {});
       (e[name] || (e[name] = [])).push({
@@ -1705,6 +1891,46 @@
     };
     publicAPIs.init = function(options) {
       settings = extend(defaults, options || {});
+      if (settings.breadcrumbs) {
+        if (document.addEventListener) {
+          document.addEventListener('click', breadcrumbClickEventHandler, false);
+          document.addEventListener('submit', breadcrumbFormSubmitEventHandler, false);
+        } else if (document.attachEvent) {
+          document.attachEvent('click', breadcrumbClickEventHandler, false);
+          document.attachEvent('submit', breadcrumbFormSubmitEventHandler, false);
+        }
+        if (window.addEventListener) {
+          window.addEventListener('load', breadcrumbWindowEventHandler, false);
+          window.addEventListener('DOMContentLoaded', breadcrumbWindowEventHandler, false);
+          window.addEventListener('pageshow', breadcrumbWindowEventHandler, false);
+          window.addEventListener('pagehide', breadcrumbWindowEventHandler, false);
+          window.addEventListener('hashchange', breadcrumbHashChangeEventHandler, false);
+        } else if (window.attachEvent) {
+          window.attachEvent('load', breadcrumbWindowEventHandler, false);
+          window.attachEvent('DOMContentLoaded', breadcrumbWindowEventHandler, false);
+          window.attachEvent('pageshow', breadcrumbWindowEventHandler, false);
+          window.attachEvent('pagehide', breadcrumbWindowEventHandler, false);
+          window.attachEvent('hashchange', breadcrumbHashChangeEventHandler, false);
+        }
+        if (window.history && window.history.pushState && window.history.replaceState) {
+          var old_onpopstate = window.onpopstate;
+          window.onpopstate = function(evt) {
+            breadcrumbWindowEventHandler(evt);
+            if (old_onpopstate) {
+              return old_onpopstate.apply(this, arguments);
+            }
+          };
+        }
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+          var open = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url) {
+            this.addEventListener("loadend", function(event) {
+              breadcrumbXHRHandler(event, method, url);
+            }, false);
+            open.apply(this, arguments);
+          };
+        }
+      }
       window.onerror = function(message, source, lineno, colno, error) {
         var errorLog = {
           'message': message,
