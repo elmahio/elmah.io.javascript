@@ -88,6 +88,10 @@ declare namespace Elmahio {
          * Can have one of the following values: 'none', 'debug', 'info', 'warn', 'error'. Default is 'none'.
          */
         captureConsoleMinimumLevel?: string;
+		/**
+		 * Log breadcrumbs
+		 */
+		breadcrumbs: boolean;
     }
 
     interface Item {
@@ -176,6 +180,10 @@ declare namespace Elmahio {
          * A key/value pair of user-defined fields and their values. When logging an exception, the Data dictionary of the exception is copied to this property. You can add additional key/value pairs, by modifying the Data dictionary on the exception or by supplying additional key/values to this API.
          */
         data: Array<Item>;
+		/**
+		 * A key/value pair of user events.
+		 */
+		breadcrumbs: Array<Item>;
     }
 }
 
