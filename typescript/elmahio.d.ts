@@ -59,6 +59,10 @@ declare class Elmahio {
      * Create a new message with prefilled values for url, server variables, etc. Set a title and any other values you want to log and send the message as parameter to the log-function.
      */
     message(error?: Error): Elmahio.Message;
+    /**
+     * Register a new breadcrumb.
+     */
+    addBreadcrumb(message: string, severity: string, event: string): void;
 }
 
 declare namespace Elmahio {
@@ -88,15 +92,21 @@ declare namespace Elmahio {
          * Can have one of the following values: 'none', 'debug', 'info', 'warn', 'error'. Default is 'none'.
          */
         captureConsoleMinimumLevel?: string;
-		/**
-		 * Log breadcrumbs
-		 */
-		breadcrumbs: boolean;
+        /**
+         * Log breadcrumbs
+         */
+        breadcrumbs: boolean;
     }
 
     interface Item {
         key: string;
         value: string;
+    }
+
+    interface Breadcrumb {
+        message: string;
+        severity: string;
+        event: string;
     }
 
     interface Message {
@@ -180,10 +190,10 @@ declare namespace Elmahio {
          * A key/value pair of user-defined fields and their values. When logging an exception, the Data dictionary of the exception is copied to this property. You can add additional key/value pairs, by modifying the Data dictionary on the exception or by supplying additional key/values to this API.
          */
         data: Array<Item>;
-		/**
-		 * A key/value pair of user events.
-		 */
-		breadcrumbs: Array<Item>;
+        /**
+         * A key/value pair of user events.
+         */
+        breadcrumbs: Array<Breadcrumb>;
     }
 }
 
