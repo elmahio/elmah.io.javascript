@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.4.2
+ * elmah.io Javascript Logger - version 3.5.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1027,6 +1027,7 @@
     captureConsoleMinimumLevel: 'none',
     breadcrumbs: false
   };
+  var breadcrumbsDelay = 100;
   var extend = function() {
     var extended = {};
     var deep = false;
@@ -1497,7 +1498,6 @@
       if (breadcrumbs.length > 10) {
         breadcrumbs.shift();
       }
-      console.log(breadcrumbs);
     }
     var breadcrumbClickEventHandler = function(evt) {
       var target;
@@ -1817,54 +1817,56 @@
       };
       jsonData = merge_objects(jsonData, getPayload());
       if (breadcrumbs.length > 0) {
-        jsonData.breadcrumbs = breadcrumbs;
-        breadcrumbs = [];
+        var promise = new Promise(function(resolve) {
+          setTimeout(function() {
+            jsonData.breadcrumbs = breadcrumbs;
+            breadcrumbs = [];
+            resolve(jsonData);
+          }, 100);
+        });
+        return promise;
       }
       return jsonData;
-    }
-    publicAPIs.error = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
     };
     publicAPIs.error = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
-    };
-    publicAPIs.verbose = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.verbose = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
-    };
-    publicAPIs.debug = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.debug = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
-    };
-    publicAPIs.information = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.information = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
-    };
-    publicAPIs.warning = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.warning = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
-    };
-    publicAPIs.fatal = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.fatal = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.log = function(obj) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.message = function(error) {
       return sendPrefilledLogMessage(error);
     };
-    publicAPIs.addBreadcrumb = function(severity, evt, msg) {
+    publicAPIs.addBreadcrumb = function(msg, severity, evt) {
       recordBreadcrumb({
         "severity": (severity != undefined && isString(severity)) ? severity : "Information",
         "action": (evt != undefined && isString(evt)) ? evt : "Log",
@@ -1939,7 +1941,9 @@
           'colno': colno,
           'error': error
         }
-        sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+        setTimeout(function() {
+          sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+        }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         return false;
       }
       if (options && options.captureConsoleMinimumLevel !== "none") {
@@ -1950,7 +1954,9 @@
               'message': errMessage,
               'arguments': arguments
             }
-            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
+            setTimeout(function() {
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
+            }, settings.breadcrumbs ? breadcrumbsDelay : 0);
             _error.apply(console, arguments);
           };
           if (options.captureConsoleMinimumLevel !== "error") {
@@ -1960,7 +1966,9 @@
                 'message': warnMessage,
                 'arguments': arguments
               }
-              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+              setTimeout(function() {
+                sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+              }, settings.breadcrumbs ? breadcrumbsDelay : 0);
               _warning.apply(console, arguments);
             };
           }
@@ -1972,7 +1980,9 @@
               'message': infoMessage,
               'arguments': arguments
             }
-            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
+            setTimeout(function() {
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
+            }, settings.breadcrumbs ? breadcrumbsDelay : 0);
             _info.apply(console, arguments);
           };
         }
@@ -1983,7 +1993,9 @@
               'message': debugMessage,
               'arguments': arguments
             }
-            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Debug', errorLog);
+            setTimeout(function() {
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Debug', errorLog);
+            }, settings.breadcrumbs ? breadcrumbsDelay : 0);
             _debug.apply(console, arguments);
           };
         }
