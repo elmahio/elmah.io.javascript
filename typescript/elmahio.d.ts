@@ -61,6 +61,9 @@ declare class Elmahio {
     message(error?: Error): Elmahio.Message;
     /**
      * Register a new breadcrumb.
+     * @param message The message of the breadcrumb.
+     * @param severity An enum value representing the severity of this breadcrumb. The following values are allowed: Verbose, Debug, Information, Warning, Error, Fatal.
+     * @param event An action describing this breadcrumb. All string values are accepted but the following will show up with special UI elements in elmah.io: click, submit, navigation, request, error, warning, fatal.
      */
     addBreadcrumb(message: string, severity: string, event: string): void;
 }
@@ -104,8 +107,17 @@ declare namespace Elmahio {
     }
 
     interface Breadcrumb {
+        /**
+         * The message of the breadcrumb.
+         */
         message: string;
+        /**
+         * An enum value representing the severity of this breadcrumb. The following values are allowed: Verbose, Debug, Information, Warning, Error, Fatal.
+         */
         severity: string;
+        /**
+         * An action describing this breadcrumb. All string values are accepted but the following will show up with special UI elements in elmah.io: click, submit, navigation, request, error, warning, fatal.
+         */
         event: string;
     }
 
