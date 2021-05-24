@@ -1524,18 +1524,6 @@
             };
 
             jsonData = merge_objects(jsonData, getPayload());
-
-            // Add breadcrumbs to jsonData
-            if(breadcrumbs.length > 0) {
-                var promise = new Promise(function(resolve) {
-                    setTimeout(function() {
-                        jsonData.breadcrumbs = breadcrumbs;
-                        breadcrumbs = [];
-                        resolve(jsonData);
-                    }, 100);
-                });
-                return promise;
-            }
             
             return jsonData;
         };
