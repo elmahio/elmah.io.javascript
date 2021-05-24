@@ -1701,7 +1701,7 @@
           };
           jsonData = merge_objects(jsonData, getPayload());
         } else {
-          jsonData = error;
+          var jsonData = error;
         }
         if (settings.filter !== null) {
           if (settings.filter(jsonData)) {
@@ -1710,11 +1710,18 @@
         }
         if (send === 1) {
           if (jsonData.title) {
-            publicAPIs.emit('message', jsonData);
             if (breadcrumbs.length > 0) {
-              jsonData.breadcrumbs = breadcrumbs;
+              if (jsonData.breadcrumbs.length > 0) {
+                breadcrumbs = breadcrumbs.reverse();
+                for (var i = 0; i < breadcrumbs.length; i++) {
+                  jsonData.breadcrumbs.unshift(breadcrumbs[i]);
+                }
+              } else {
+                jsonData.breadcrumbs = breadcrumbs;
+              }
               breadcrumbs = [];
             }
+            publicAPIs.emit('message', jsonData);
             if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               stackGPS(error, xhr, jsonData);
             } else {

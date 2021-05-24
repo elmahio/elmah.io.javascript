@@ -1366,8 +1366,8 @@
 
                 } else {
 
-                    jsonData = error;
-
+                    var jsonData = error;
+                    
                 }
 
                 // filter callback
@@ -1380,14 +1380,25 @@
                 if (send === 1) {
                     if (jsonData.title) {
 
-                        // on message event
-                        publicAPIs.emit('message', jsonData);
-
                         // Add breadcrumbs to jsonData
                         if(breadcrumbs.length > 0) {
-                            jsonData.breadcrumbs = breadcrumbs;
+                            // If message contains breadcrumbs
+                            if(jsonData.breadcrumbs.length > 0) {
+                                breadcrumbs = breadcrumbs.reverse();
+                                for (var i = 0; i < breadcrumbs.length; i++) {
+                                    // Add breadcrumbs to jsonData object
+                                    jsonData.breadcrumbs.unshift(breadcrumbs[i]);
+                                }
+                            } else {
+                                jsonData.breadcrumbs = breadcrumbs;
+                            }
+                            
+                            // Reset breadcrumbs
                             breadcrumbs = [];
                         }
+
+                        // on message event
+                        publicAPIs.emit('message', jsonData);
 
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                             // send message trying to pinpoint stackframes
