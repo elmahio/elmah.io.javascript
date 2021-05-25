@@ -59,6 +59,13 @@ declare class Elmahio {
      * Create a new message with prefilled values for url, server variables, etc. Set a title and any other values you want to log and send the message as parameter to the log-function.
      */
     message(error?: Error): Elmahio.Message;
+    /**
+     * Register a new breadcrumb.
+     * @param message The message of the breadcrumb.
+     * @param severity An enum value representing the severity of this breadcrumb. The following values are allowed: Verbose, Debug, Information, Warning, Error, Fatal.
+     * @param event An action describing this breadcrumb. All string values are accepted but the following will show up with special UI elements in elmah.io: click, submit, navigation, request, error, warning, fatal.
+     */
+    addBreadcrumb(message: string, severity: string, event: string): void;
 }
 
 declare namespace Elmahio {
@@ -88,11 +95,30 @@ declare namespace Elmahio {
          * Can have one of the following values: 'none', 'debug', 'info', 'warn', 'error'. Default is 'none'.
          */
         captureConsoleMinimumLevel?: string;
+        /**
+         * Log breadcrumbs
+         */
+        breadcrumbs: boolean;
     }
 
     interface Item {
         key: string;
         value: string;
+    }
+
+    interface Breadcrumb {
+        /**
+         * The message of the breadcrumb.
+         */
+        message: string;
+        /**
+         * An enum value representing the severity of this breadcrumb. The following values are allowed: Verbose, Debug, Information, Warning, Error, Fatal.
+         */
+        severity: string;
+        /**
+         * An action describing this breadcrumb. All string values are accepted but the following will show up with special UI elements in elmah.io: click, submit, navigation, request, error, warning, fatal.
+         */
+        event: string;
     }
 
     interface Message {
@@ -176,6 +202,10 @@ declare namespace Elmahio {
          * A key/value pair of user-defined fields and their values. When logging an exception, the Data dictionary of the exception is copied to this property. You can add additional key/value pairs, by modifying the Data dictionary on the exception or by supplying additional key/values to this API.
          */
         data: Array<Item>;
+        /**
+         * A key/value pair of user events.
+         */
+        breadcrumbs: Array<Breadcrumb>;
     }
 }
 

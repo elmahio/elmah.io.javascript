@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.4.1
+ * elmah.io Javascript Logger - version 3.5.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
@@ -609,8 +609,11 @@
         debug: false,
         application: null,
         filter: null,
-        captureConsoleMinimumLevel: 'none'
+        captureConsoleMinimumLevel: 'none',
+        breadcrumbs: false
     };
+
+    var breadcrumbsDelay = 100;
 
     //
     // Shared Methods
@@ -927,19 +930,76 @@
         return app;
     }
 
+    function isString(what) {
+        return Object.prototype.toString.call(what) === '[object String]';
+    }
+
+    function cssSelectorString(elem) {
+        var MAX_TRAVERSE_HEIGHT = 5,
+            MAX_OUTPUT_LEN = 80,
+            out = [],
+            height = 0,
+            len = 0,
+            separator = ' > ',
+            sepLength = separator.length,
+            nextStr;
+        while (elem && height++ < MAX_TRAVERSE_HEIGHT) {
+            nextStr = htmlElementAsString(elem);
+            if (nextStr === 'html' || (height > 1 && len + out.length * sepLength + nextStr.length >= MAX_OUTPUT_LEN)) {
+                break;
+            }
+            out.push(nextStr);
+            len += nextStr.length;
+            elem = elem.parentNode;
+        }
+        return out.reverse().join(separator);
+    }
+      
+    function htmlElementAsString(elem) {
+        var out = [], className, classes, key, attr, i;
+        if (!elem || !elem.tagName) {
+            return '';
+        }
+        out.push(elem.tagName.toLowerCase());
+        if (elem.id) {
+            out.push('#' + elem.id);
+        }
+        className = elem.className;
+        if (className && isString(className)) {
+            classes = className.split(/\s+/);
+            for (i = 0; i < classes.length; i++) {
+                out.push('.' + classes[i]);
+            }
+        }
+        var attrWhitelist = ['type', 'name', 'title', 'alt'];
+        for (i = 0; i < attrWhitelist.length; i++) {
+            key = attrWhitelist[i];
+            attr = elem.getAttribute(key);
+            if (attr) {
+                out.push('[' + key + '="' + attr + '"]');
+            }
+        }
+        return out.join('');
+    }
+
+    var parseHash = function(url) {
+        return url.split('#')[1] || '';
+    };
+
     //
     // Constructor
-    // Can be named anything you want
     //
 
     var Constructor = function (options) {
 
         //
-        // Unique Variables
+        // Variables
         //
 
         var publicAPIs = {};
         var settings;
+        var breadcrumbs = [];
+        var lastHref = window.location && window.location.href;
 
         function getPayload() {
             var payload = {
@@ -1038,8 +1098,121 @@
 
         // Private methods
 
-        var sendPayload = function (apiKey, logId, callback, errorLog) {
+        var recordBreadcrumb = function(obj) {
+            var crumb = merge_objects({
+                'dateTime': new Date().toISOString()
+            }, obj);
 
+            breadcrumbs.push(crumb);
+            if (breadcrumbs.length > 10) { // max 10 breadcrumbs
+                breadcrumbs.shift();
+            }
+        }
+
+        var breadcrumbClickEventHandler = function(evt) {
+            var target;
+            try {
+                target = cssSelectorString(evt.target);
+            } catch (e) {
+                target = "<unknown_target>";
+            }
+
+            recordBreadcrumb({
+                "severity": "Information",
+                "action": "Click",
+                "message": target
+            });
+        }
+
+        var breadcrumbFormSubmitEventHandler = function(evt) {
+            var target;
+            try {
+                target = cssSelectorString(evt.target);
+            } catch (e) {
+                target = "<unknown_target>";
+            }
+
+            recordBreadcrumb({
+                "severity": "Information",
+                "action": "Form submit",
+                "message": target
+            });
+        }
+
+        var breadcrumbWindowEventHandler = function(evt) {
+            var type = evt.type,
+                message = null;
+
+            switch (type) {
+                case "load":
+                    message = "Page loaded"; break;
+                case "DOMContentLoaded":
+                    message = "DOMContentLoaded"; break;
+                case "pageshow":
+                    message = "Page shown"; break;
+                case "pagehide":
+                    message = "Page hidden"; break;
+                case "popstate":
+                    message = "Navigated from: " + lastHref + " to: " + window.location.href; break;
+            }
+
+            recordBreadcrumb({
+                "severity": "Information",
+                "action": "Navigation",
+                "message": message
+            });
+        }
+
+        var breadcrumbHashChangeEventHandler = function(evt) {
+            var oldURL = evt.oldURL,
+                newURL = evt.newURL,
+                from = null,
+                to = null,
+                message = null;
+
+            if (oldURL && newURL) {
+                from = parseHash(oldURL);
+                to = parseHash(newURL);
+                message = "from: '" + from + "' to: '" + to + "'";
+            } else {
+                to = location.hash;
+                message = "to: '" + to + "'";
+            }
+
+            recordBreadcrumb({
+                "severity": "Information",
+                "action": "Navigation",
+                "message": "Hash changed " + message
+            });
+        }
+
+        var breadcrumbXHRHandler = function(evt, method, url) {
+            var status = evt.srcElement.status,
+                severity = null,
+                method = method.toUpperCase(),
+                url = url,
+                regex = /https:\/\/api.elmah.io/g;
+
+            if(url.match(regex) == null) { 
+                if (status > 0 && status < 400) {
+                    severity = "Information";
+                } else if (status > 399 && status < 500) {
+                    severity = "Warning";
+                } else if (status >= 500) {
+                    severity = "Error";
+                }
+
+                var statusCode = status > 0 ? " (" + status + ")" : "";
+
+                recordBreadcrumb({
+                    "severity": severity,
+                    "action": "Request",
+                    "message": "[" + method + "] " + url + statusCode
+                });
+            }
+        }
+
+        var sendPayload = function (apiKey, logId, callback, errorLog) {
             var api_key = apiKey,
                 log_id = logId,
                 error = errorLog,
@@ -1106,6 +1279,12 @@
 
                 // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
+
+                // Add breadcrumbs to jsonData
+                if(breadcrumbs.length > 0) {
+                    jsonData.breadcrumbs = breadcrumbs;
+                    breadcrumbs = [];
+                }
 
                 // filter callback
                 if (settings.filter !== null) {
@@ -1187,8 +1366,8 @@
 
                 } else {
 
-                    jsonData = error;
-
+                    var jsonData = error;
+                    
                 }
 
                 // filter callback
@@ -1200,6 +1379,23 @@
 
                 if (send === 1) {
                     if (jsonData.title) {
+
+                        // Add breadcrumbs to jsonData
+                        if(breadcrumbs.length > 0) {
+                            // If message contains breadcrumbs
+                            if(jsonData.breadcrumbs.length > 0) {
+                                breadcrumbs = breadcrumbs.reverse();
+                                for (var i = 0; i < breadcrumbs.length; i++) {
+                                    // Add breadcrumbs to jsonData object
+                                    jsonData.breadcrumbs.unshift(breadcrumbs[i]);
+                                }
+                            } else {
+                                jsonData.breadcrumbs = breadcrumbs;
+                            }
+                            
+                            // Reset breadcrumbs
+                            breadcrumbs = [];
+                        }
 
                         // on message event
                         publicAPIs.emit('message', jsonData);
@@ -1293,6 +1489,12 @@
                 // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
 
+                // Add breadcrumbs to jsonData
+                if(breadcrumbs.length > 0) {
+                    jsonData.breadcrumbs = breadcrumbs;
+                    breadcrumbs = [];
+                }
+
                 // filter callback
                 if (settings.filter !== null) {
                     if (settings.filter(jsonData)) {
@@ -1333,59 +1535,42 @@
             };
 
             jsonData = merge_objects(jsonData, getPayload());
+            
             return jsonData;
-        }
+        };
 
         // Some public methods
 
-        publicAPIs.error = function (msg) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
-        };
         publicAPIs.error = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
-        };
-
-        publicAPIs.verbose = function (msg) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
         publicAPIs.verbose = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
-        };
-
-        publicAPIs.debug = function (msg) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
         publicAPIs.debug = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
-        };
-
-        publicAPIs.information = function (msg) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
         publicAPIs.information = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
-        };
-
-        publicAPIs.warning = function (msg) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
         publicAPIs.warning = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
-        };
-
-        publicAPIs.fatal = function (msg) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
         publicAPIs.fatal = function (msg, error) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
-
         publicAPIs.log = function (obj) {
-            sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+            setTimeout(function() { sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         };
-
         publicAPIs.message = function(error) {
             return sendPrefilledLogMessage(error);
+        };
+        publicAPIs.addBreadcrumb = function(msg, severity, evt) {
+            recordBreadcrumb({
+                "severity": (severity != undefined && isString(severity)) ? severity : "Information",
+                "action": (evt != undefined && isString(evt)) ? evt : "Log",
+                "message": (msg != undefined && isString(msg)) ? msg : "This is just a test message."
+            });
         };
 
         publicAPIs.on = function (name, callback, ctx) {
@@ -1417,9 +1602,59 @@
             // -- Merge options into defaults
             settings = extend(defaults, options || {});
 
+            // -- Breadcrumbs
+            if (settings.breadcrumbs) {
+                // Breadcrumbs - Click & Submit form
+                if (document.addEventListener) {
+                    document.addEventListener('click', breadcrumbClickEventHandler, false);
+                    document.addEventListener('submit', breadcrumbFormSubmitEventHandler, false);
+                } else if (document.attachEvent) {
+                    document.attachEvent('click', breadcrumbClickEventHandler, false);
+                    document.attachEvent('submit', breadcrumbFormSubmitEventHandler, false);
+                }
+
+                // Breadcrumbs - Navigation
+                if (window.addEventListener) {
+                    window.addEventListener('load', breadcrumbWindowEventHandler, false);
+                    window.addEventListener('DOMContentLoaded', breadcrumbWindowEventHandler, false);
+                    window.addEventListener('pageshow', breadcrumbWindowEventHandler, false);
+                    window.addEventListener('pagehide', breadcrumbWindowEventHandler, false);
+                    window.addEventListener('hashchange', breadcrumbHashChangeEventHandler, false);
+                } else if (window.attachEvent) {
+                    window.attachEvent('load', breadcrumbWindowEventHandler, false);
+                    window.attachEvent('DOMContentLoaded', breadcrumbWindowEventHandler, false);
+                    window.attachEvent('pageshow', breadcrumbWindowEventHandler, false);
+                    window.attachEvent('pagehide', breadcrumbWindowEventHandler, false);
+                    window.attachEvent('hashchange', breadcrumbHashChangeEventHandler, false);
+                }
+
+                if(window.history && window.history.pushState && window.history.replaceState) {
+                    var old_onpopstate = window.onpopstate;
+                    window.onpopstate = function(evt) {
+                        breadcrumbWindowEventHandler(evt);
+                        if (old_onpopstate) {
+                            return old_onpopstate.apply(this, arguments);
+                        }
+                    };
+                }
+
+                // Breadcrumbs - XHR
+                if(window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+                    // Store a reference to the native method
+                    var open = XMLHttpRequest.prototype.open;
+                    
+                    // Overwrite the native method
+                    XMLHttpRequest.prototype.open = function(method, url) {
+                        // Assign an event listener
+                        this.addEventListener("loadend", function(event) { breadcrumbXHRHandler(event, method, url); }, false);
+                        // Call the stored reference to the native method
+                        open.apply(this, arguments);
+                    };
+                }
+            }
+
             // -- Log on window error
             window.onerror = function (message, source, lineno, colno, error) {
-
                 var errorLog = {
                     'message': message,
                     'source': source,
@@ -1427,8 +1662,8 @@
                     'colno': colno,
                     'error': error
                 }
-
-                sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+                
+                setTimeout(function() { sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
 
                 return false;
             }
@@ -1446,7 +1681,7 @@
                     		'message': errMessage,
                     		'arguments': arguments
                     	}
-                        sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
+                        setTimeout(function() { sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
                         _error.apply(console, arguments);
                     };
                     if(options.captureConsoleMinimumLevel !== "error") {
@@ -1457,7 +1692,7 @@
                                 'message': warnMessage,
                                 'arguments': arguments
                             }
-                            sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+                            setTimeout(function() { sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
                             _warning.apply(console, arguments);
                         };
                     }
@@ -1470,7 +1705,7 @@
                     		'message': infoMessage,
                     		'arguments': arguments
                     	}
-                        sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
+                        setTimeout(function() { sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
                         _info.apply(console, arguments);
                     };
                 }
@@ -1482,7 +1717,7 @@
                     		'message': debugMessage,
                     		'arguments': arguments
                     	}
-                        sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Debug', errorLog);
+                        setTimeout(function() { sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Debug', errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
                         _debug.apply(console, arguments);
                     };
                 }
