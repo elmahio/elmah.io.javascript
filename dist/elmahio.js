@@ -1711,7 +1711,7 @@
         if (send === 1) {
           if (jsonData.title) {
             if (breadcrumbs.length > 0) {
-              if (jsonData.breadcrumbs.length > 0) {
+              if (jsonData.breadcrumbs && jsonData.breadcrumbs.length > 0) {
                 breadcrumbs = breadcrumbs.reverse();
                 for (var i = 0; i < breadcrumbs.length; i++) {
                   jsonData.breadcrumbs.unshift(breadcrumbs[i]);

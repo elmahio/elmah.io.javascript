@@ -1383,7 +1383,7 @@
                         // Add breadcrumbs to jsonData
                         if(breadcrumbs.length > 0) {
                             // If message contains breadcrumbs
-                            if(jsonData.breadcrumbs.length > 0) {
+                            if(jsonData.breadcrumbs && jsonData.breadcrumbs.length > 0) {
                                 breadcrumbs = breadcrumbs.reverse();
                                 for (var i = 0; i < breadcrumbs.length; i++) {
                                     // Add breadcrumbs to jsonData object
