@@ -14,6 +14,5 @@ function generateError() {
 }
 
 function addBreadcrumb() {
-    debugger;
     logger.addBreadcrumb("Information", "Log", "Something happened before the error");
 }
