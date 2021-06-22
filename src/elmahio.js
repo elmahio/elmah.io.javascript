@@ -1187,7 +1187,7 @@
         }
 
         var breadcrumbXHRHandler = function(evt, method, url) {
-            var status = evt.srcElement.status,
+            var status = evt && evt.srcElement ? evt.srcElement.status : 0,
                 severity = null,
                 method = method.toUpperCase(),
                 url = url,
