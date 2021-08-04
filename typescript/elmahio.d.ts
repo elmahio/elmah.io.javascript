@@ -98,7 +98,7 @@ declare namespace Elmahio {
         /**
          * Log breadcrumbs
          */
-        breadcrumbs: boolean;
+        breadcrumbs?: boolean;
     }
 
     interface Item {
