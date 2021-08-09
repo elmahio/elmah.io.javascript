@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.5.1
+ * elmah.io Javascript Logger - version 3.5.5
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
@@ -587,10 +587,16 @@
     // Shared Variables
     //
 
+    var myScript = null;
     var scriptFile = document.getElementsByTagName('script');
-    var scriptIndex = scriptFile.length - 1;
-    var myScript = scriptFile[scriptIndex];
-    var queryString = myScript.src.replace(/^[^\?]+\??/, '');
+    
+    for (var i = 0; i < scriptFile.length; ++i) {
+        if(isMe(scriptFile[i])) {
+            myScript = scriptFile[i];
+        }
+    }
+
+    var queryString = myScript != null ? myScript.src.replace(/^[^\?]+\??/, '') : null;
     var params = parseQuery(queryString);
     var paramsLength = objectLength(params);
 
@@ -659,6 +665,12 @@
     //
     // Helpers
     //
+
+    function isMe(scriptElem){
+        if(scriptElem.getAttribute('src') != null) {
+            return scriptElem.getAttribute('src').indexOf('elmahio') != -1 && scriptElem.getAttribute('src').indexOf('apiKey') != -1 && scriptElem.getAttribute('src').indexOf('logId') != -1;
+        }
+    }
 
     function parseQuery(query) {
         var Params = new Object();

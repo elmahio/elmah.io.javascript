@@ -1,7 +1,7 @@
 {
   "name": "elmah.io.javascript",
   "description": "elmah.io javascript logger.",
-  "version": "3.5.1",
+  "version": "3.5.5",
   "repository": "https://github.com/elmahio/elmah.io.javascript",
   "license": "Apache-2.0",
   "main": "dist/elmahio.js",
