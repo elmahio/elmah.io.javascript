@@ -10,6 +10,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>elmah.io JavaScript logger.</description>
     <projectUrl>https://elmah.io/</projectUrl>
+    <readme>README.md</readme>
     <repository type="git" url="https://github.com/elmahio/elmah.io.javascript" />
     <iconUrl>https://secure.gravatar.com/avatar/5c4cb3646528821117abde6d2d5ee22d?s=64</iconUrl>
     <icon>icon.png</icon>
@@ -17,6 +18,7 @@
   </metadata>
   <files>
     <file src="icon.png" target="icon.png" />
+    <file src="README.md" target="README.md" />
     <file src="dist\elmahio.js" target="content\scripts\elmahio.js" />
     <file src="dist\elmahio.js.map" target="content\scripts\elmahio.js.map" />
     <file src="dist\elmahio.min.js" target="content\scripts\elmahio.min.js" />
