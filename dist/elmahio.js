@@ -1582,7 +1582,7 @@
       });
     }
     var breadcrumbXHRHandler = function(evt, method, url) {
-      var status = evt && evt.srcElement ? evt.srcElement.status : 0,
+      var status = evt && evt.target ? evt.target.status : 0,
         severity = null,
         method = method.toUpperCase(),
         url = url,
