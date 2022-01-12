@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.5.3
+ * elmah.io Javascript Logger - version 3.5.4
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1029,7 +1029,8 @@
     application: null,
     filter: null,
     captureConsoleMinimumLevel: 'none',
-    breadcrumbs: false
+    breadcrumbs: false,
+    breadcrumbsNumber: 10
   };
   var breadcrumbsDelay = 100;
   var extend = function() {
@@ -1502,10 +1503,18 @@
     }
     var recordBreadcrumb = function(obj) {
       var crumb = merge_objects({
-        'dateTime': new Date().toISOString()
-      }, obj);
+          'dateTime': new Date().toISOString()
+        }, obj),
+        breadcrumbs_number = 10;
       breadcrumbs.push(crumb);
-      if (breadcrumbs.length > 10) {
+      if (options.breadcrumbsNumber && typeof options.breadcrumbsNumber === "number") {
+        if (options.breadcrumbsNumber > 25) {
+          breadcrumbs_number = 25;
+        } else if (options.breadcrumbsNumber >= 10 && options.breadcrumbsNumber <= 25) {
+          breadcrumbs_number = options.breadcrumbsNumber;
+        }
+      }
+      if (breadcrumbs.length >= breadcrumbs_number) {
         breadcrumbs.shift();
       }
     }

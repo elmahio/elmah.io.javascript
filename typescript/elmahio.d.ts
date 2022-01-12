@@ -99,6 +99,11 @@ declare namespace Elmahio {
          * Log breadcrumbs
          */
         breadcrumbs?: boolean;
+        /**
+         * Number of breadcrumbs to log.
+         * Minimum 10, maximum 25 breadcrumbs.
+         */
+        breadcrumbsNumber?: number;
     }
 
     interface Item {

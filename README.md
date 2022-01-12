@@ -31,7 +31,8 @@ new Elmahio({
   application: null,
   filter: null,
   captureConsoleMinimumLevel: 'none',
-  breadcrumbs: false
+  breadcrumbs: false,
+  breadcrumbsNumber: 10
 });
 ```
 
