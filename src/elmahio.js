@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.6.0
+ * elmah.io Javascript Logger - version 3.7.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
