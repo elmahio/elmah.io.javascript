@@ -1769,15 +1769,49 @@
         args = Object.values(errorLog.arguments),
         send = 1,
         queryParams = getSearchParameters();
-      if (String(message).match(/(%d|%s)+/ig) && args.length > 1) {
-        var sprintfJS = new sprintfjs();
-        args.shift();
-        message = sprintfJS.vsprintf(message, args);
+
+      function format(f, args) {
+        var formatRegExp = /%[sdif]/g;
+        var str = f;
+        if (args.length > 1) {
+          if (String(f).match(/%[sdif]/g)) {
+            var i = 0;
+            str = String(f).replace(formatRegExp, function(x) {
+              switch (x) {
+                case '%s':
+                  i++;
+                  return args[i] ? String(args[i]) : '%s';
+                case '%d':
+                  i++;
+                  return args[i] ? Number.parseInt(args[i]) : '%d';
+                case '%i':
+                  i++;
+                  return args[i] ? Number.parseInt(args[i]) : '%i';
+                case '%f':
+                  i++;
+                  return args[i] ? Number.parseFloat(args[i]) : '%f';
+                default:
+                  return x;
+              }
+            });
+            for (var len = args.length, x = args[++i]; i < len; x = args[++i]) {
+              if (x === null || typeof x !== 'object') {
+                str += ' ' + x;
+              } else {
+                str += ' ' + String(Object.prototype.toString.call(x));
+              }
+            }
+          } else {
+            str = args.join(' ');
+          }
+        }
+        return str;
       }
-      if (typeof message !== "string") {
+      message = format(message, args);
+      if (typeof message !== "string" && message !== undefined) {
         message = message.toString();
       }
-      if (typeof messageTemplate !== "string") {
+      if (typeof messageTemplate !== "string" && messageTemplate !== undefined) {
         messageTemplate = messageTemplate.toString();
       }
       if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
