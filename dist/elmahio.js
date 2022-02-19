@@ -1065,6 +1065,14 @@
     }
   }
 
+  function isInt(n) {
+    return Number(n) === n && n % 1 === 0;
+  }
+
+  function isFloat(n) {
+    return Number(n) === n && n % 1 !== 0;
+  }
+
   function parseQuery(query) {
     var Params = new Object();
     if (!query) return Params;
@@ -1783,13 +1791,13 @@
                   return args[i] ? String(args[i]) : '%s';
                 case '%d':
                   i++;
-                  return args[i] ? parseInt(args[i]) : '%d';
+                  return args[i] ? (isInt(args[i]) || isFloat(args[i])) ? parseInt(args[i]) : 'NaN' : '%d';
                 case '%i':
                   i++;
-                  return args[i] ? parseInt(args[i]) : '%i';
+                  return args[i] ? (isInt(args[i]) || isFloat(args[i])) ? parseInt(args[i]) : 'NaN' : '%i';
                 case '%f':
                   i++;
-                  return args[i] ? parseFloat(args[i]) : '%f';
+                  return args[i] ? (isInt(args[i]) || isFloat(args[i])) ? parseFloat(args[i]) : 'NaN' : '%f';
                 default:
                   return x;
               }
