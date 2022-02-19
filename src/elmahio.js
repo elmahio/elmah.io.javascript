@@ -1473,9 +1473,9 @@
                         str = String(f).replace(formatRegExp, function(x) {
                             switch (x) {
                                 case '%s': i++; return args[i] ? String(args[i]) : '%s';
-                                case '%d': i++; return args[i] ? Number.parseInt(args[i]) : '%d';
-                                case '%i': i++; return args[i] ? Number.parseInt(args[i]) : '%i';
-                                case '%f': i++; return args[i] ? Number.parseFloat(args[i]) : '%f';
+                                case '%d': i++; return args[i] ? parseInt(args[i]) : '%d';
+                                case '%i': i++; return args[i] ? parseInt(args[i]) : '%i';
+                                case '%f': i++; return args[i] ? parseFloat(args[i]) : '%f';
                                 default: return x;
                             }
                         });
