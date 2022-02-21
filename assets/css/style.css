@@ -26,6 +26,10 @@ hr {
     border-bottom: 1px solid #ddd;
 }
 
+.form-options .actions p {
+    align-self: center;
+}
+
 .captureConsoleOptions {
     display: flex;
     justify-content: end;
