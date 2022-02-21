@@ -1,0 +1,84 @@
+hr {
+    margin: 30px -15px 5px -15px;
+    border-color: #ddd;
+}
+
+.bg-dark {
+    background: #1e1e2d !important;
+}
+
+.playground-wrapper {
+    display: flex;
+    height: calc(100vh - 56px);
+}
+
+.playground-options {
+    flex: 0 50%;
+    padding: 15px;
+    background: #ffffff;
+    overflow-y: auto;
+}
+
+.form-options {
+    margin: -15px -15px 0px -15px;
+    padding: 15px;
+    background: #f2f6f9;
+    border-bottom: 1px solid #ddd;
+}
+
+.captureConsoleOptions {
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    height: 100%;
+}
+
+.playground-console {
+    flex: 0 50%;
+    padding: 15px;
+    overflow-y: auto;
+    background: #1b283f;
+}
+
+.playground-console .message {
+    color: #fff;
+    margin: -15px -15px 15px -15px;
+    padding: 6px 15px;
+    position: sticky;
+    top: -15px;
+    z-index: 9;
+}
+.playground-console .message.error {
+    background: #e6614f;
+}
+.playground-console .message.warning {
+    background: #c9970e;
+}
+.playground-console .message.information {
+    background: #0da58e;
+}
+.playground-console .message.debug {
+    background: #789b95;
+}
+
+.jstTree {
+    position: relative;
+}
+.jstTree .jstBracket,
+.jstTree .jstComma,
+.jstTree .jstColon {
+    color: #fff;
+}
+.jstTree .jstCollapse,
+.jstTree .jstExpand {
+    color: red;
+}
+
+@media (max-width: 991px) {
+    .captureConsoleOptions {
+        display: block;
+        align-items: unset;
+        justify-content: unset;
+        margin-bottom: 15px;
+    }
+}

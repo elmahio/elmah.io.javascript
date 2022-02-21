@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="icon" href="favicon.ico" type="image/x-icon" />
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+        <link rel="stylesheet" href="assets/css/jsontree.css" />
+        <link rel="stylesheet" href="assets/css/style.css" />
+        <title>Playground - elmah.io.javascript</title>
+    </head>
+
+    <body>
+
+        <nav class="navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">elmah.io.javascript</a>
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="btn btn-info" href="https://docs.elmah.io/logging-to-elmah-io-from-javascript/" target="_blank">Documentation</a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="playground-wrapper">
+            <div class="playground-options">
+                <form class="form-options">
+                    <div class="row">
+                        <div class="form-group col">
+                            <label for="apikey">API Key</label>
+                            <input type="text" class="form-control" id="apikey" value="" />
+                        </div>
+                        
+                        <div class="form-group col">
+                            <label for="logid">Log ID</label>
+                            <input type="text" class="form-control" id="logid" value="" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="application">Application name</label>
+                        <input type="text" class="form-control" id="application" value="" />
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col">
+                            <label for="breadcrumbs">Breadcrumbs</label>
+                            <select class="custom-select" id="breadcrumbs">
+                                <option value="true">true</option>
+                                <option value="false" selected>false</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group col">
+                            <label for="breadcrumbsNumber">Breadcrumbs number</label>
+                            <select class="custom-select" id="breadcrumbsNumber">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10" selected>10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                                <option value="21">21</option>
+                                <option value="22">22</option>
+                                <option value="23">23</option>
+                                <option value="24">24</option>
+                                <option value="25">25</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="captureConsole">Capture console minimum level</label>
+                        <select class="custom-select" id="captureConsole">
+                            <option value="none" selected>none</option>
+                            <option value="debug">debug</option>
+                            <option value="info">info</option>
+                            <option value="warn">warn</option>
+                            <option value="error">error</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-dark" id="save">Save</button>
+                    <button class="btn btn-danger" id="clear">Clear</button>
+                </form>
+
+                <h5 class="my-4">Throw an error</h5>
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="" placeholder="your message here, or leave empty to throw an empty error">
+                        <div class="input-group-append">
+                            <button class="btn btn-success log-custom" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-lg-6 col-md-12">
+                        <h5 class="my-4">Capture console minimum level</h5>
+                    </div>
+
+                    <div class="col-lg-6 col-md-12">
+                        <div class="captureConsoleOptions">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                                <button type="button" class="btn btn-secondary active" data-btn="error">Error</button>
+                                <button type="button" class="btn btn-secondary" data-btn="warn">Warning</button>
+                                <button type="button" class="btn btn-secondary" data-btn="info">Information</button>
+                                <button type="button" class="btn btn-secondary" data-btn="debug">Debug</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'Hello', 'World', 3" disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'Hello %s', 'World'" disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'Hello %s', 'World', '!'" disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'some debug', {hello: 'world'}, {other: 'object'}" disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'She has %d %s, %d %s and %f %s.', 5, 'apples', 2, 'bananas', 3.5, 'oranges'" disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'She has %d %s, %d %s and %f %s.', 5, 'apples', 2, 'bananas', 3.5, 'oranges', 'In total: 10.5 fruits.'" disabled>
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="input-group col">
+                        <input type="text" class="form-control" value="'write your own custom message'">
+                        <div class="input-group-append">
+                            <button class="btn btn-success log" type="button">Log</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="playground-console"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+        <script src="/dist/elmahio.min.js"></script>
+        <script src="assets/js/jsontree.js"></script>
+        <script>
+
+            const getObjectFromString = (stringToParse) => {
+                if(typeof stringToParse === 'string'){
+                    let currentKey = '';
+                    const keyValPairArr = stringToParse.replace('{','').replace('}','').split(':');
+                    return keyValPairArr.reduce((obj,current,index,arr) => {
+                        const previousKey = currentKey;
+                        const arrKeyVal = current.trim().split(',');
+                        currentKey = index !== arr.length - 1 ? arrKeyVal.pop().trim() : '';
+                        const previousVal = arrKeyVal.join(',');
+                        if(previousKey && previousVal !== '') obj[previousKey] = previousVal;
+                        return obj;
+                    }, {});
+                }   else{
+                    return stringToParse||{};
+                }
+            }
+
+            if(localStorage.getItem('apiKey') && localStorage.getItem('logId')) {
+                $('#apikey').val(localStorage.getItem('apiKey'));
+                $('#logid').val(localStorage.getItem('logId'));
+
+                var options = {
+                    apiKey: localStorage.getItem('apiKey'),
+                    logId: localStorage.getItem('logId'),
+                    debug: true
+                };
+
+                if(localStorage.getItem('application')) {
+                    $('#application').val(localStorage.getItem('application'));
+                    options.application = localStorage.getItem('application');
+                }
+
+                if(localStorage.getItem('breadcrumbs')) {
+                    $('#breadcrumbs').val(localStorage.getItem('breadcrumbs'));
+                    options.breadcrumbs = localStorage.getItem('breadcrumbs') === "true" ? true : false;
+                }
+
+                if(localStorage.getItem('breadcrumbsNumber')) {
+                    $('#breadcrumbsNumber').val(localStorage.getItem('breadcrumbsNumber'));
+                    options.breadcrumbsNumber = parseInt(localStorage.getItem('breadcrumbsNumber'));
+                }
+
+                if(localStorage.getItem('captureConsole')) {
+                    $('#captureConsole').val(localStorage.getItem('captureConsole'));
+                    options.captureConsoleMinimumLevel = localStorage.getItem('captureConsole');
+
+                    switch(localStorage.getItem('captureConsole')) {
+                        case 'none':
+                            $('.btn-group button').attr('disabled', 'disabled');
+                            $('.log').attr('disabled', 'disabled');
+                            break;
+                        case 'info':
+                            $('.btn-group button[data-btn="debug"]').attr('disabled', 'disabled');
+                            break;
+                        case 'warn':
+                            $('.btn-group button[data-btn="debug"]').attr('disabled', 'disabled');
+                            $('.btn-group button[data-btn="info"]').attr('disabled', 'disabled');
+                            break;
+                        case 'error':
+                            $('.btn-group button[data-btn="debug"]').attr('disabled', 'disabled');
+                            $('.btn-group button[data-btn="info"]').attr('disabled', 'disabled');
+                            $('.btn-group button[data-btn="warn"]').attr('disabled', 'disabled');
+                            break;
+                    }
+                }
+
+                var log = new Elmahio(options).on('message', function(msg) {
+                    $('.playground-console').empty();
+                    $('.playground-console').html(JSONTree.create(msg));
+                    $('.playground-console').prepend('<div class="message '+ msg.severity.toLowerCase() +'">Message logged:</div>');
+                });
+            }
+
+            $('#save').on('click', function() {
+                if($('#apikey').val() && $('#logid').val()) {
+                    localStorage.setItem('apiKey', $('#apikey').val());
+                    localStorage.setItem('logId', $('#logid').val());
+                    localStorage.setItem('application', $('#application').val());
+                    localStorage.setItem('breadcrumbs', $('#breadcrumbs').val());
+                    localStorage.setItem('breadcrumbsNumber', $('#breadcrumbsNumber').val());
+                    localStorage.setItem('captureConsole', $('#captureConsole').val());
+
+                    setTimeout(function(){
+                        window.location.reload();
+                    }, 100);
+                } else {
+                    alert('Input API Key and Log ID');
+                }
+            });
+
+            $('#clear').on('click', function() {
+                localStorage.removeItem('apiKey');
+                localStorage.removeItem('logId');
+                localStorage.removeItem('application');
+                localStorage.removeItem('breadcrumbs');
+                localStorage.removeItem('breadcrumbsNumber');
+                localStorage.removeItem('captureConsole');
+                setTimeout(function(){
+                    window.location.reload();
+                }, 100);
+            });
+
+            $('.btn-group button').on('click', function() {
+                $('.btn-group button').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            $('.log-custom').on('click', function() {
+                if(log) {
+                    var message = $(this).parents('.input-group').find('input').val();
+                    throw new Error(message);
+                } else {
+                    alert('Elmahio.js is not initialized. Add your API Key & Log ID first.');
+                }
+            });
+
+            $('.log').on('click', function() {
+                if(log) {
+                    var arr = [];
+                    var severity = $('.btn-group button.active').attr('data-btn');
+                    var message = $(this).parents('.input-group').find('input').val();
+                    var messageArray = String(message).split(/(?:^|,\s)(\'(?:[^\'']+|\'\'')*\'|[^,]*)/g);
+                    var messageArrayFiltered = messageArray.filter(function (el) {
+                        return el != null && el != '';
+                    });
+
+                    messageArrayFiltered.forEach(function(x){
+                        if( (x.indexOf("{") >= 0 && x.indexOf("}") >= 0) || x.indexOf("Object") >= 0) {
+                            x = x.replaceAll("'", "");
+                            arr.push(getObjectFromString(x));
+                        } else {
+                            if (x.indexOf("'") === 0) {
+                                x = x.replaceAll("'", "");
+                                arr.push(String(x));
+                            } else {
+                                arr.push(Number(x));
+                            }
+                        }
+                    });
+
+                    switch (severity) {
+                        case 'error':
+                            console.error.apply(null, arr);
+                            break;
+                        case 'warn':
+                            console.warn.apply(null, arr);
+                            break;
+                        case 'info':
+                            console.info.apply(null, arr);
+                            break;
+                        case 'debug':
+                            console.debug.apply(null, arr);
+                            break;
+                    }
+
+                } else {
+                    alert('Elmahio.js is not initialized. Add your API Key & Log ID first.');
+                }
+            });
+
+        </script>
+    </body>
+</html>
