@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.7.0
+ * elmah.io Javascript Logger - version 3.7.1
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1448,6 +1448,10 @@
             if (xhr.status === 201) {
               callback('success', xhr.statusText);
             }
+            if (xhr.status >= 400 && xhr.status <= 499) {
+              callback('error', xhr.statusText);
+              publicAPIs.emit('error', xhr.status, xhr.statusText);
+            }
           }
         };
         xhr.onerror = function(e) {
@@ -1511,6 +1515,10 @@
           if (xhr.readyState === 4) {
             if (xhr.status === 201) {
               callback('success', xhr.statusText);
+            }
+            if (xhr.status >= 400 && xhr.status <= 499) {
+              callback('error', xhr.statusText);
+              publicAPIs.emit('error', xhr.status, xhr.statusText);
             }
           }
         };
@@ -1636,6 +1644,10 @@
           if (xhr.readyState === 4) {
             if (xhr.status === 201) {
               callback('success', xhr.statusText);
+            }
+            if (xhr.status >= 400 && xhr.status <= 499) {
+              callback('error', xhr.statusText);
+              publicAPIs.emit('error', xhr.status, xhr.statusText);
             }
           }
         };
