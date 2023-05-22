@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.7.1
+ * elmah.io Javascript Logger - version 4.0.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
@@ -848,34 +848,79 @@
             }
         }
 
-        function stackGPS(error, xhr, jsonData) {
-        	var errorStack = error.toString().split("\n")[0];
-        	var gps = new StackTraceGPS();
-            var promise = new Promise(function(resolve) {
-	            var stackframes = ErrorStackParser.parse(error);
-	            resolve(Promise.all(stackframes.map(function(sf) {
-	                return new Promise(function(resolve) {
-	                    function resolveOriginal() {
-	                        resolve(sf);
-	                    }
-	                    gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
-	                });
-	            })));	
-            });
+        function generateErrorObject(error) {
+            return {
+                error: error,
+                type: error.name,
+                message: error.message,
+                inner: error.cause && typeof error.cause === "object" ? generateErrorObject(error.cause) : []
+            }
+        }
 
-            promise.then(function(newFrames){
-            	newFrames.forEach(function(stackFrame, i){
-					if(stackFrame.functionName) {
-            			var fn = stackFrame.functionName + ' ';
-            		} else {
-            			var fn = '';
-            		}
-            		var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
-            		newFrames[i] = stackString;
-            	});
-            	newFrames.unshift(errorStack);
-            	jsonData.detail = newFrames.join("\n");
-            	xhr.send(JSON.stringify(jsonData));
+        function GenerateNewFrames(errorMessage, newFrames, cause) {
+            newFrames.forEach(function(stackFrame, i) {
+                if (stackFrame.functionName) {
+                    var fn = stackFrame.functionName + ' ';
+                } else {
+                    var fn = '';
+                }
+                var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+                newFrames[i] = stackString;
+            });
+    
+            if (!cause) {
+                newFrames.unshift(errorMessage);
+            } else {
+                newFrames.unshift("\nCaused by: " + errorMessage);
+            }
+    
+            return newFrames;
+        }
+
+        function GPSPromise(stackframes) {
+            var gps = new StackTraceGPS();
+
+            return new Promise(function(resolve) {
+                resolve(Promise.all(stackframes.map(function(sf) {
+                    return new Promise(function(resolve) {
+                        function resolveOriginal() {
+                            resolve(sf);
+                        }
+                        gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
+                    });
+                })));
+            });
+        }
+
+        function stackGPS(error, xhr, jsonData) {
+            var object = generateErrorObject(error);
+            var messagesArr = [];
+            var promiseArr = [];
+
+            function iterateObj(obj) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "error") {
+                        messagesArr.push(obj[key].toString().split("\n")[0]);
+                        promiseArr.push(GPSPromise(ErrorStackParser.parse(obj[key])));
+                    }
+                    if (key === "inner" && obj[key].length !== 0) {
+                        iterateObj(obj[key]);
+                    }
+                });
+            }
+
+            iterateObj(object);
+
+            Promise.all(promiseArr).then((values) => {
+                values.forEach(function(stackframe, index) {
+                    if (index === 0) {
+                        jsonData.detail = GenerateNewFrames(messagesArr[index], stackframe, false).join("\n");
+                    } else {
+                        jsonData.detail += GenerateNewFrames(messagesArr[index], stackframe, true).join("\n");
+                    }
+                });
+            }).then(function() {
+                xhr.send(JSON.stringify(jsonData));
             });
         }
 
@@ -897,6 +942,66 @@
                 }
             }
             return stack.join('\n');
+        }
+
+        function guid() {
+            var s4 = function() {
+                return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
+            }
+            return s4() + s4();
+        }
+
+        function inspectorObj (error, fullError) {
+            var obj = {};
+            obj.Id = guid();
+
+            if (typeof error === "object") {
+                var stack = error && objectLength(error.stack) !== 0 && typeof error === "object" ? ErrorStackParser.parse(error) : '';
+                obj.Type = error.name;
+                obj.Message = error.message;
+                obj.StackTrace = ErrorStackParser.parse(error);
+                obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
+                obj.Inners = error.cause && typeof error.cause === "object" ? [inspectorObj(error.cause)] : [];
+            } else {
+                obj.Type = typeof fullError.error;
+                obj.Message = fullError.message;
+                obj.StackTrace = stackString(fullError);
+                obj.Source = fullError.source;
+                obj.Inners = [];
+            }
+
+            return obj;
+        }
+
+        function inspectorGPS (error) {
+            var inspectorObject = inspectorObj(error);
+            var promiseArr = [];
+
+            function iterateObj(obj, final) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "StackTrace") {
+                        if (!final) {
+                            obj[key] = GPSPromise(obj[key]);
+                            promiseArr.push(obj[key]);
+                        } else {
+                            obj[key].then(result => { obj[key] = GenerateNewFrames(obj.Type + ': ' + obj.Message, result).join("\n"); });
+                        }
+                    }
+                    if (key === "Inners" && obj[key].length !== 0) {
+                        iterateObj(obj[key][0], final);
+                    }
+                });
+            }
+
+            iterateObj(inspectorObject, false);
+
+            return new Promise(function(resolve, reject) {
+                Promise.all(promiseArr).then(function(values) {
+                    iterateObj(inspectorObject, true);
+                }).then(function() {
+                    resolve(inspectorObject);
+                });
+            });
         }
 
         // Private methods
@@ -1116,9 +1221,16 @@
                     publicAPIs.emit('message', jsonData);
 
                     if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-                    	// send message trying to pinpoint stackframes
-                    	stackGPS(error.error, xhr, jsonData);
+                        // try to pinpoint stackframes from error object
+                        inspectorGPS(error.error).then((result) => {
+                            // Add inspector to jsonData
+                            jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
+                            // send message trying to pinpoint stackframes
+                            stackGPS(error.error, xhr, jsonData);
+                        });
 	                } else {
+                        // Add inspector to jsonData
+                        jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(inspectorObj(error.error, errorLog)) });
 	                	// send message
                     	xhr.send(JSON.stringify(jsonData));
 	                }
@@ -1226,14 +1338,25 @@
                         publicAPIs.emit('message', jsonData);
 
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-                            // send message trying to pinpoint stackframes
-                            stackGPS(error, xhr, jsonData);
+                            // try to pinpoint stackframes from error object
+                            inspectorGPS(error).then((result) => {
+                                // Add inspector to jsonData
+                                jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
+                                // send message trying to pinpoint stackframes
+                                stackGPS(error, xhr, jsonData);
+                            });
                         } else {
                             // send message
                             if(jsonData.errorObject) {
                                 error = jsonData.errorObject;
                                 delete jsonData.errorObject;
-                                stackGPS(error, xhr, jsonData);
+                                // try to pinpoint stackframes from error object
+                                inspectorGPS(error).then((result) => {
+                                    // Add inspector to jsonData
+                                    jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
+                                    // send message trying to pinpoint stackframes
+                                    stackGPS(error, xhr, jsonData);
+                                });
                             } else {
                                 xhr.send(JSON.stringify(jsonData));
                             }
