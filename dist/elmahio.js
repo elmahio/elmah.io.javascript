@@ -1960,7 +1960,17 @@
           'lineno': lineno,
           'colno': colno,
           'error': error
-        }
+        };
+        setTimeout(function() {
+          sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+        }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+        return false;
+      }
+      window.onunhandledrejection = function(event) {
+        var errorLog = {
+          'message': event.reason.message,
+          'error': event.reason
+        };
         setTimeout(function() {
           sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
         }, settings.breadcrumbs ? breadcrumbsDelay : 0);
