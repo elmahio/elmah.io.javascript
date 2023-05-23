@@ -857,6 +857,26 @@
             }
         }
 
+        function getErrorType(error) {
+            var object = generateErrorObject(error);
+            var type = null;
+
+            function iterateObj(obj) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "type") {
+                        type = obj[key];
+                    }
+                    if (key === "inner" && obj[key].length !== 0) {
+                        iterateObj(obj[key]);
+                    }
+                });
+            }
+
+            iterateObj(object);
+
+            return type;
+        }
+
         function GenerateNewFrames(errorMessage, newFrames, cause) {
             newFrames.forEach(function(stackFrame, i) {
                 if (stackFrame.functionName) {
@@ -1200,6 +1220,12 @@
                     jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
                 }
 
+                // Check if the error sent has a cause
+                // Then change the type with the most inner error type
+                if(error.error && error.error.cause && typeof error.error.cause === "object") {
+                    jsonData.type = getErrorType(error.error);
+                }
+
                 // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
 
@@ -1297,6 +1323,12 @@
                         "type": error ? error.name : null,
                         "queryString": JSON.parse(JSON.stringify(queryParams))
                     };
+
+                    // Check if the error sent has a cause
+                    // Then change the type with the most inner error type
+                    if(error && error.cause && typeof error.cause === "object") {
+                        jsonData.type = getErrorType(error);
+                    }
 
                     // Add payload to jsonData
                     jsonData = merge_objects(jsonData, getPayload());
@@ -1515,6 +1547,12 @@
                 "type": error ? error.name : null,
                 "errorObject": error
             };
+
+            // Check if the error sent has a cause
+            // Then change the type with the most inner error type
+            if(error && error.cause && typeof error.cause === "object") {
+                jsonData.type = getErrorType(error);
+            }
 
             jsonData = merge_objects(jsonData, getPayload());
             

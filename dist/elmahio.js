@@ -1272,6 +1272,24 @@
       }
     }
 
+    function getErrorType(error) {
+      var object = generateErrorObject(error);
+      var type = null;
+
+      function iterateObj(obj) {
+        Object.keys(obj).forEach(function(key) {
+          if (key === "type") {
+            type = obj[key];
+          }
+          if (key === "inner" && obj[key].length !== 0) {
+            iterateObj(obj[key]);
+          }
+        });
+      }
+      iterateObj(object);
+      return type;
+    }
+
     function GenerateNewFrames(errorMessage, newFrames, cause) {
       newFrames.forEach(function(stackFrame, i) {
         if (stackFrame.functionName) {
@@ -1572,6 +1590,9 @@
           jsonData.source = errorLog.source;
           jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
         }
+        if (error.error && error.error.cause && typeof error.error.cause === "object") {
+          jsonData.type = getErrorType(error.error);
+        }
         jsonData = merge_objects(jsonData, getPayload());
         if (breadcrumbs.length > 0) {
           jsonData.breadcrumbs = breadcrumbs;
@@ -1645,6 +1666,9 @@
             "type": error ? error.name : null,
             "queryString": JSON.parse(JSON.stringify(queryParams))
           };
+          if (error && error.cause && typeof error.cause === "object") {
+            jsonData.type = getErrorType(error);
+          }
           jsonData = merge_objects(jsonData, getPayload());
         } else {
           var jsonData = error;
@@ -1818,6 +1842,9 @@
         "type": error ? error.name : null,
         "errorObject": error
       };
+      if (error && error.cause && typeof error.cause === "object") {
+        jsonData.type = getErrorType(error);
+      }
       jsonData = merge_objects(jsonData, getPayload());
       return jsonData;
     };
