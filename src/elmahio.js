@@ -853,16 +853,21 @@
                 error: error,
                 type: error.name,
                 message: error.message,
-                inner: error.cause && typeof error.cause === "object" ? generateErrorObject(error.cause) : []
+                inner: error.cause && typeof error.cause === "object" && error.cause instanceof Error ? generateErrorObject(error.cause) : []
             }
         }
 
-        function getErrorType(error) {
+        function getErrorTypeSource(error) {
             var object = generateErrorObject(error);
             var type = null;
+            var source = null;
 
             function iterateObj(obj) {
                 Object.keys(obj).forEach(function(key){
+                    if (key === "error") {
+                        var stack = obj[key] ? ErrorStackParser.parse(obj[key]) : null;
+                        source = stack && stack.length > 0 ? stack[0].fileName : null;
+                    }
                     if (key === "type") {
                         type = obj[key];
                     }
@@ -874,10 +879,31 @@
 
             iterateObj(object);
 
-            return type;
+            return { type: type, source: source };
         }
 
-        function GenerateNewFrames(errorMessage, newFrames, cause) {
+        function getLastInnerSource(obj) {
+            var source = null;
+
+            function iterateObj(obj) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "Source") {
+                        source = obj['Source'];
+                    }
+                    if (key === "Inners" && obj[key].length !== 0) {
+                        iterateObj(obj[key][0]);
+                    }
+                });
+            }
+
+            iterateObj(obj);
+
+            return source;
+        }
+
+        function GenerateNewFrames(errorMessage, newFrames, cause, fileName) {
+            var lastInnerFileName = null;
+
             newFrames.forEach(function(stackFrame, i) {
                 if (stackFrame.functionName) {
                     var fn = stackFrame.functionName + ' ';
@@ -886,12 +912,20 @@
                 }
                 var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
                 newFrames[i] = stackString;
+                lastInnerFileName = stackFrame.fileName || null;
             });
     
             if (!cause) {
                 newFrames.unshift(errorMessage);
             } else {
                 newFrames.unshift("\nCaused by: " + errorMessage);
+            }
+
+            if (fileName) {
+                return {
+                    newFrames: newFrames,
+                    fileName: lastInnerFileName
+                }
             }
     
             return newFrames;
@@ -981,7 +1015,7 @@
                 obj.Message = error.message;
                 obj.StackTrace = ErrorStackParser.parse(error);
                 obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
-                obj.Inners = error.cause && typeof error.cause === "object" ? [inspectorObj(error.cause)] : [];
+                obj.Inners = error.cause && typeof error.cause === "object" && error.cause instanceof Error ? [inspectorObj(error.cause)] : [];
             } else {
                 obj.Type = typeof fullError.error;
                 obj.Message = fullError.message;
@@ -1004,7 +1038,11 @@
                             obj[key] = GPSPromise(obj[key]);
                             promiseArr.push(obj[key]);
                         } else {
-                            obj[key].then(result => { obj[key] = GenerateNewFrames(obj.Type + ': ' + obj.Message, result).join("\n"); });
+                            obj[key].then(result => {
+                                var generateNewFrames = GenerateNewFrames(obj.Type + ': ' + obj.Message, result, false, true);
+                                obj[key] = generateNewFrames.newFrames.join("\n");
+                                obj['Source'] = generateNewFrames.fileName || null;
+                            });
                         }
                     }
                     if (key === "Inners" && obj[key].length !== 0) {
@@ -1221,9 +1259,11 @@
                 }
 
                 // Check if the error sent has a cause
-                // Then change the type with the most inner error type
-                if(error.error && error.error.cause && typeof error.error.cause === "object") {
-                    jsonData.type = getErrorType(error.error);
+                // Then change the type and source with the most inner error type
+                if(error.error && error.error.cause && typeof error.error.cause === "object" && error.error.cause instanceof Error) {
+                    var typeAndSource = getErrorTypeSource(error.error);
+                    jsonData.type = typeAndSource.type;
+                    jsonData.source = typeAndSource.source;
                 }
 
                 // Add payload to jsonData
@@ -1249,6 +1289,8 @@
                     if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                         // try to pinpoint stackframes from error object
                         inspectorGPS(error.error).then((result) => {
+                            // Add source from the most inner error cause
+                            jsonData.source = getLastInnerSource(result);
                             // Add inspector to jsonData
                             jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
                             // send message trying to pinpoint stackframes
@@ -1325,9 +1367,11 @@
                     };
 
                     // Check if the error sent has a cause
-                    // Then change the type with the most inner error type
-                    if(error && error.cause && typeof error.cause === "object") {
-                        jsonData.type = getErrorType(error);
+                    // Then change the type and source with the most inner error type
+                    if(error && error.cause && typeof error.cause === "object" && error.cause instanceof Error) {
+                        var typeAndSource = getErrorTypeSource(error);
+                        jsonData.type = typeAndSource.type;
+                        jsonData.source = typeAndSource.source;
                     }
 
                     // Add payload to jsonData
@@ -1372,6 +1416,8 @@
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                             // try to pinpoint stackframes from error object
                             inspectorGPS(error).then((result) => {
+                                // Add source from the most inner error cause
+                                jsonData.source = getLastInnerSource(result);
                                 // Add inspector to jsonData
                                 jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
                                 // send message trying to pinpoint stackframes
@@ -1384,6 +1430,8 @@
                                 delete jsonData.errorObject;
                                 // try to pinpoint stackframes from error object
                                 inspectorGPS(error).then((result) => {
+                                    // Add source from the most inner error cause
+                                    jsonData.source = getLastInnerSource(result);
                                     // Add inspector to jsonData
                                     jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
                                     // send message trying to pinpoint stackframes
@@ -1549,9 +1597,11 @@
             };
 
             // Check if the error sent has a cause
-            // Then change the type with the most inner error type
-            if(error && error.cause && typeof error.cause === "object") {
-                jsonData.type = getErrorType(error);
+            // Then change the type and source with the most inner error type
+            if(error && error.cause && typeof error.cause === "object" && error.cause instanceof Error) {
+                var typeAndSource = getErrorTypeSource(error);
+                jsonData.type = typeAndSource.type;
+                jsonData.source = typeAndSource.source;
             }
 
             jsonData = merge_objects(jsonData, getPayload());
