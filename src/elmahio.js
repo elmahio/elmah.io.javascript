@@ -882,25 +882,6 @@
             return { type: type, source: source };
         }
 
-        function getLastInnerSource(obj) {
-            var source = null;
-
-            function iterateObj(obj) {
-                Object.keys(obj).forEach(function(key){
-                    if (key === "Source") {
-                        source = obj['Source'];
-                    }
-                    if (key === "Inners" && obj[key].length !== 0) {
-                        iterateObj(obj[key][0]);
-                    }
-                });
-            }
-
-            iterateObj(obj);
-
-            return source;
-        }
-
         function GenerateNewFrames(errorMessage, newFrames, cause, fileName) {
             var lastInnerFileName = null;
 
@@ -1289,8 +1270,6 @@
                     if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                         // try to pinpoint stackframes from error object
                         inspectorGPS(error.error).then((result) => {
-                            // Add source from the most inner error cause
-                            jsonData.source = getLastInnerSource(result);
                             // Add inspector to jsonData
                             jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
                             // send message trying to pinpoint stackframes
@@ -1416,8 +1395,6 @@
                         if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                             // try to pinpoint stackframes from error object
                             inspectorGPS(error).then((result) => {
-                                // Add source from the most inner error cause
-                                jsonData.source = getLastInnerSource(result);
                                 // Add inspector to jsonData
                                 jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
                                 // send message trying to pinpoint stackframes
@@ -1430,8 +1407,6 @@
                                 delete jsonData.errorObject;
                                 // try to pinpoint stackframes from error object
                                 inspectorGPS(error).then((result) => {
-                                    // Add source from the most inner error cause
-                                    jsonData.source = getLastInnerSource(result);
                                     // Add inspector to jsonData
                                     jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
                                     // send message trying to pinpoint stackframes

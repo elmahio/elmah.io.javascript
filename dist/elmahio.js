@@ -1298,23 +1298,6 @@
       };
     }
 
-    function getLastInnerSource(obj) {
-      var source = null;
-
-      function iterateObj(obj) {
-        Object.keys(obj).forEach(function(key) {
-          if (key === "Source") {
-            source = obj['Source'];
-          }
-          if (key === "Inners" && obj[key].length !== 0) {
-            iterateObj(obj[key][0]);
-          }
-        });
-      }
-      iterateObj(obj);
-      return source;
-    }
-
     function GenerateNewFrames(errorMessage, newFrames, cause, fileName) {
       var lastInnerFileName = null;
       newFrames.forEach(function(stackFrame, i) {
@@ -1644,7 +1627,6 @@
           publicAPIs.emit('message', jsonData);
           if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
             inspectorGPS(error.error).then((result) => {
-              jsonData.source = getLastInnerSource(result);
               jsonData.data.push({
                 "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
                 "value": JSON.stringify(result)
@@ -1734,7 +1716,6 @@
             publicAPIs.emit('message', jsonData);
             if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               inspectorGPS(error).then((result) => {
-                jsonData.source = getLastInnerSource(result);
                 jsonData.data.push({
                   "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
                   "value": JSON.stringify(result)
@@ -1746,7 +1727,6 @@
                 error = jsonData.errorObject;
                 delete jsonData.errorObject;
                 inspectorGPS(error).then((result) => {
-                  jsonData.source = getLastInnerSource(result);
                   jsonData.data.push({
                     "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
                     "value": JSON.stringify(result)
