@@ -1308,7 +1308,9 @@
         }
         var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
         newFrames[i] = stackString;
-        lastInnerFileName = stackFrame.fileName || null;
+        if (i === 0) {
+          lastInnerFileName = stackFrame.fileName || null;
+        }
       });
       if (!cause) {
         newFrames.unshift(errorMessage);
