@@ -1336,7 +1336,7 @@
 
                 if (type !== "Log") {
 
-                    var stack = error ? ErrorStackParser.parse(error) : null;
+                    var stack = error && error instanceof Error ? ErrorStackParser.parse(error) : null;
 
                     var jsonData = {
                         "title": message,
@@ -1394,7 +1394,7 @@
                         // on message event
                         publicAPIs.emit('message', jsonData);
 
-                        if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+                        if (error && error instanceof Error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
                             // try to pinpoint stackframes from error object
                             inspectorGPS(error).then((result) => {
                                 // Add inspector to jsonData
@@ -1404,7 +1404,7 @@
                             });
                         } else {
                             // send message
-                            if(jsonData.errorObject) {
+                            if(jsonData.errorObject && jsonData.errorObject instanceof Error) {
                                 error = jsonData.errorObject;
                                 delete jsonData.errorObject;
                                 // try to pinpoint stackframes from error object
@@ -1415,6 +1415,7 @@
                                     stackGPS(error, xhr, jsonData);
                                 });
                             } else {
+                                delete jsonData.errorObject;
                                 xhr.send(JSON.stringify(jsonData));
                             }
                         }
