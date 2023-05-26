@@ -1527,7 +1527,7 @@
           publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         if (type !== "Log") {
-          var stack = error ? ErrorStackParser.parse(error) : null;
+          var stack = error && error instanceof Error ? ErrorStackParser.parse(error) : null;
           var jsonData = {
             "title": message,
             "source": stack && stack.length > 0 ? stack[0].fileName : null,
@@ -1559,14 +1559,15 @@
               breadcrumbs = [];
             }
             publicAPIs.emit('message', jsonData);
-            if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+            if (error && error instanceof Error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
               stackGPS(error, xhr, jsonData);
             } else {
-              if (jsonData.errorObject) {
+              if (jsonData.errorObject && jsonData.errorObject instanceof Error) {
                 error = jsonData.errorObject;
                 delete jsonData.errorObject;
                 stackGPS(error, xhr, jsonData);
               } else {
+                delete jsonData.errorObject;
                 xhr.send(JSON.stringify(jsonData));
               }
             }
