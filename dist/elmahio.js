@@ -126,42 +126,44 @@
     return StackFrame;
   })();
   var ErrorStackParser = (function() {
-    "use strict";
-    var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
-    var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+\:\d+|\(native\))/m;
-    var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code\])?$/;
+    'use strict';
+    var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+:\d+/;
+    var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+:\d+|\(native\))/m;
+    var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code])?$/;
     return {
       parse: function ErrorStackParser$$parse(error) {
-        if (typeof error.stacktrace !== "undefined" || typeof error["opera#sourceloc"] !== "undefined") {
+        if (typeof error.stacktrace !== 'undefined' || typeof error['opera#sourceloc'] !== 'undefined') {
           return this.parseOpera(error);
         } else if (error.stack && error.stack.match(CHROME_IE_STACK_REGEXP)) {
           return this.parseV8OrIE(error);
         } else if (error.stack) {
           return this.parseFFOrSafari(error);
         } else {
-          throw new Error("Cannot parse given Error object");
+          throw new Error('Cannot parse given Error object');
         }
       },
       extractLocation: function ErrorStackParser$$extractLocation(urlLike) {
-        if (urlLike.indexOf(":") === -1) {
+        if (urlLike.indexOf(':') === -1) {
           return [urlLike];
         }
-        var regExp = /(.+?)(?:\:(\d+))?(?:\:(\d+))?$/;
-        var parts = regExp.exec(urlLike.replace(/[\(\)]/g, ""));
+        var regExp = /(.+?)(?::(\d+))?(?::(\d+))?$/;
+        var parts = regExp.exec(urlLike.replace(/[()]/g, ''));
         return [parts[1], parts[2] || undefined, parts[3] || undefined];
       },
       parseV8OrIE: function ErrorStackParser$$parseV8OrIE(error) {
-        var filtered = error.stack.split("\n").filter(function(line) {
+        var filtered = error.stack.split('\n').filter(function(line) {
           return !!line.match(CHROME_IE_STACK_REGEXP);
         }, this);
         return filtered.map(function(line) {
-          if (line.indexOf("(eval ") > -1) {
-            line = line.replace(/eval code/g, "eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g, "");
+          if (line.indexOf('(eval ') > -1) {
+            line = line.replace(/eval code/g, 'eval').replace(/(\(eval at [^()]*)|(,.*$)/g, '');
           }
-          var tokens = line.replace(/^\s+/, "").replace(/\(eval code/g, "(").split(/\s+/).slice(1);
-          var locationParts = this.extractLocation(tokens.pop());
-          var functionName = tokens.join(" ") || undefined;
-          var fileName = ["eval", "<anonymous>"].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
+          var sanitizedLine = line.replace(/^\s+/, '').replace(/\(eval code/g, '(').replace(/^.*?\s+/, '');
+          var location = sanitizedLine.match(/ (\(.+\)$)/);
+          sanitizedLine = location ? sanitizedLine.replace(location[0], '') : sanitizedLine;
+          var locationParts = this.extractLocation(location ? location[1] : sanitizedLine);
+          var functionName = location && sanitizedLine || undefined;
+          var fileName = ['eval', '<anonymous>'].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
           return new StackFrame({
             functionName: functionName,
             fileName: fileName,
@@ -172,14 +174,14 @@
         }, this);
       },
       parseFFOrSafari: function ErrorStackParser$$parseFFOrSafari(error) {
-        var filtered = error.stack.split("\n").filter(function(line) {
+        var filtered = error.stack.split('\n').filter(function(line) {
           return !line.match(SAFARI_NATIVE_CODE_REGEXP);
         }, this);
         return filtered.map(function(line) {
-          if (line.indexOf(" > eval") > -1) {
-            line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g, ":$1");
+          if (line.indexOf(' > eval') > -1) {
+            line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval:\d+:\d+/g, ':$1');
           }
-          if (line.indexOf("@") === -1 && line.indexOf(":") === -1) {
+          if (line.indexOf('@') === -1 && line.indexOf(':') === -1) {
             return new StackFrame({
               functionName: line
             });
@@ -187,7 +189,7 @@
             var functionNameRegex = /((.*".+"[^@]*)?[^@]*)(?:@)/;
             var matches = line.match(functionNameRegex);
             var functionName = matches && matches[1] ? matches[1] : undefined;
-            var locationParts = this.extractLocation(line.replace(functionNameRegex, ""));
+            var locationParts = this.extractLocation(line.replace(functionNameRegex, ''));
             return new StackFrame({
               functionName: functionName,
               fileName: locationParts[0],
@@ -199,7 +201,7 @@
         }, this);
       },
       parseOpera: function ErrorStackParser$$parseOpera(e) {
-        if (!e.stacktrace || e.message.indexOf("\n") > -1 && e.message.split("\n").length > e.stacktrace.split("\n").length) {
+        if (!e.stacktrace || (e.message.indexOf('\n') > -1 && e.message.split('\n').length > e.stacktrace.split('\n').length)) {
           return this.parseOpera9(e);
         } else if (!e.stack) {
           return this.parseOpera10(e);
@@ -209,7 +211,7 @@
       },
       parseOpera9: function ErrorStackParser$$parseOpera9(e) {
         var lineRE = /Line (\d+).*script (?:in )?(\S+)/i;
-        var lines = e.message.split("\n");
+        var lines = e.message.split('\n');
         var result = [];
         for (var i = 2, len = lines.length; i < len; i += 2) {
           var match = lineRE.exec(lines[i]);
@@ -225,7 +227,7 @@
       },
       parseOpera10: function ErrorStackParser$$parseOpera10(e) {
         var lineRE = /Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i;
-        var lines = e.stacktrace.split("\n");
+        var lines = e.stacktrace.split('\n');
         var result = [];
         for (var i = 0, len = lines.length; i < len; i += 2) {
           var match = lineRE.exec(lines[i]);
@@ -241,19 +243,19 @@
         return result;
       },
       parseOpera11: function ErrorStackParser$$parseOpera11(error) {
-        var filtered = error.stack.split("\n").filter(function(line) {
+        var filtered = error.stack.split('\n').filter(function(line) {
           return !!line.match(FIREFOX_SAFARI_STACK_REGEXP) && !line.match(/^Error created at/);
         }, this);
         return filtered.map(function(line) {
-          var tokens = line.split("@");
+          var tokens = line.split('@');
           var locationParts = this.extractLocation(tokens.pop());
-          var functionCall = tokens.shift() || "";
-          var functionName = functionCall.replace(/<anonymous function(: (\w+))?>/, "$2").replace(/\([^\)]*\)/g, "") || undefined;
+          var functionCall = (tokens.shift() || '');
+          var functionName = functionCall.replace(/<anonymous function(: (\w+))?>/, '$2').replace(/\([^)]*\)/g, '') || undefined;
           var argsRaw;
-          if (functionCall.match(/\(([^\)]*)\)/)) {
-            argsRaw = functionCall.replace(/^[^\(]+\(([^\)]*)\)$/, "$1");
+          if (functionCall.match(/\(([^)]*)\)/)) {
+            argsRaw = functionCall.replace(/^[^(]+\(([^)]*)\)$/, '$1');
           }
-          var args = argsRaw === undefined || argsRaw === "[arguments not available]" ? undefined : argsRaw.split(",");
+          var args = (argsRaw === undefined || argsRaw === '[arguments not available]') ? undefined : argsRaw.split(',');
           return new StackFrame({
             functionName: functionName,
             args: args,
