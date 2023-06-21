@@ -1282,8 +1282,10 @@
       function iterateObj(obj) {
         Object.keys(obj).forEach(function(key) {
           if (key === "error") {
-            var stack = obj[key] ? ErrorStackParser.parse(obj[key]) : null;
-            source = stack && stack.length > 0 ? stack[0].fileName : null;
+            if (objectLength(obj[key].stack) !== 0) {
+              var stack = obj[key] ? ErrorStackParser.parse(obj[key]) : null;
+              source = stack && stack.length > 0 ? stack[0].fileName : null;
+            }
           }
           if (key === "type") {
             type = obj[key];
@@ -1350,8 +1352,10 @@
       function iterateObj(obj) {
         Object.keys(obj).forEach(function(key) {
           if (key === "error") {
-            messagesArr.push(obj[key].toString().split("\n")[0]);
-            promiseArr.push(GPSPromise(ErrorStackParser.parse(obj[key])));
+            if (objectLength(obj[key].stack) !== 0) {
+              messagesArr.push(obj[key].toString().split("\n")[0]);
+              promiseArr.push(GPSPromise(ErrorStackParser.parse(obj[key])));
+            }
           }
           if (key === "inner" && obj[key].length !== 0) {
             iterateObj(obj[key]);
@@ -1405,7 +1409,7 @@
         var stack = error && objectLength(error.stack) !== 0 && typeof error === "object" ? ErrorStackParser.parse(error) : '';
         obj.Type = error.name;
         obj.Message = error.message;
-        obj.StackTrace = ErrorStackParser.parse(error);
+        obj.StackTrace = objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
         obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
         obj.Inners = error.cause && typeof error.cause === "object" && error.cause instanceof Error ? [inspectorObj(error.cause)] : [];
       } else {
@@ -1681,7 +1685,7 @@
           publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         if (type !== "Log") {
-          var stack = error && error instanceof Error ? ErrorStackParser.parse(error) : null;
+          var stack = error && error instanceof Error && objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
           var jsonData = {
             "title": message,
             "source": stack && stack.length > 0 ? stack[0].fileName : null,
@@ -1860,7 +1864,7 @@
     var sendPrefilledLogMessage = function(errorLog) {
       if (!errorLog) return getPayload();
       var error = errorLog;
-      var stack = error ? ErrorStackParser.parse(error) : null;
+      var stack = error && objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
       var jsonData = {
         "title": error.message,
         "source": stack && stack.length > 0 ? stack[0].fileName : null,
