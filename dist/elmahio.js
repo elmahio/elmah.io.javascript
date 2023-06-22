@@ -2002,7 +2002,7 @@
       window.onunhandledrejection = function(event) {
         var errorLog = {
           'message': event.reason.message,
-          'error': event.reason
+          'error': event.reason.message && event.reason.stack ? event.reason : undefined
         };
         setTimeout(function() {
           sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
