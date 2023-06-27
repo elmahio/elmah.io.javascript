@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.7.1
+ * elmah.io Javascript Logger - version 4.0.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 
@@ -134,51 +134,59 @@
     //
 
     var ErrorStackParser = (function () {
-        "use strict";
-        var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
-        var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+\:\d+|\(native\))/m;
-        var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code\])?$/;
+        'use strict';
+        var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+:\d+/;
+        var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+:\d+|\(native\))/m;
+        var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code])?$/;
+
         return {
             /**
-                 * Given an Error object, extract the most information from it.
-                 *
-                 * @param {Error} error object
-                 * @return {Array} of StackFrames
-                 */
+             * Given an Error object, extract the most information from it.
+             *
+             * @param {Error} error object
+             * @return {Array} of StackFrames
+             */
             parse: function ErrorStackParser$$parse(error) {
-                if (typeof error.stacktrace !== "undefined" || typeof error["opera#sourceloc"] !== "undefined") {
+                if (typeof error.stacktrace !== 'undefined' || typeof error['opera#sourceloc'] !== 'undefined') {
                     return this.parseOpera(error);
                 } else if (error.stack && error.stack.match(CHROME_IE_STACK_REGEXP)) {
                     return this.parseV8OrIE(error);
                 } else if (error.stack) {
                     return this.parseFFOrSafari(error);
                 } else {
-                    throw new Error("Cannot parse given Error object");
+                    throw new Error('Cannot parse given Error object');
                 }
             },
             // Separate line and column numbers from a string of the form: (URI:Line:Column)
             extractLocation: function ErrorStackParser$$extractLocation(urlLike) {
                 // Fail-fast but return locations like "(native)"
-                if (urlLike.indexOf(":") === -1) {
+                if (urlLike.indexOf(':') === -1) {
                     return [urlLike];
                 }
-                var regExp = /(.+?)(?:\:(\d+))?(?:\:(\d+))?$/;
-                var parts = regExp.exec(urlLike.replace(/[\(\)]/g, ""));
+                var regExp = /(.+?)(?::(\d+))?(?::(\d+))?$/;
+                var parts = regExp.exec(urlLike.replace(/[()]/g, ''));
                 return [parts[1], parts[2] || undefined, parts[3] || undefined];
             },
             parseV8OrIE: function ErrorStackParser$$parseV8OrIE(error) {
-                var filtered = error.stack.split("\n").filter(function (line) {
+                var filtered = error.stack.split('\n').filter(function(line) {
                     return !!line.match(CHROME_IE_STACK_REGEXP);
                 }, this);
-                return filtered.map(function (line) {
-                    if (line.indexOf("(eval ") > -1) {
+                return filtered.map(function(line) {
+                    if (line.indexOf('(eval ') > -1) {
                         // Throw away eval information until we implement stacktrace.js/stackframe#8
-                        line = line.replace(/eval code/g, "eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g, "");
+                        line = line.replace(/eval code/g, 'eval').replace(/(\(eval at [^()]*)|(,.*$)/g, '');
                     }
-                    var tokens = line.replace(/^\s+/, "").replace(/\(eval code/g, "(").split(/\s+/).slice(1);
-                    var locationParts = this.extractLocation(tokens.pop());
-                    var functionName = tokens.join(" ") || undefined;
-                    var fileName = ["eval", "<anonymous>"].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
+                    var sanitizedLine = line.replace(/^\s+/, '').replace(/\(eval code/g, '(').replace(/^.*?\s+/, '');
+                    // capture and preseve the parenthesized location "(/foo/my bar.js:12:87)" in
+                    // case it has spaces in it, as the string is split on \s+ later on
+                    var location = sanitizedLine.match(/ (\(.+\)$)/);
+                    // remove the parenthesized location from the line, if it was matched
+                    sanitizedLine = location ? sanitizedLine.replace(location[0], '') : sanitizedLine;
+                    // if a location was matched, pass it to extractLocation() otherwise pass all sanitizedLine
+                    // because this line doesn't have function name
+                    var locationParts = this.extractLocation(location ? location[1] : sanitizedLine);
+                    var functionName = location && sanitizedLine || undefined;
+                    var fileName = ['eval', '<anonymous>'].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
                     return new StackFrame({
                         functionName: functionName,
                         fileName: fileName,
@@ -189,15 +197,15 @@
                 }, this);
             },
             parseFFOrSafari: function ErrorStackParser$$parseFFOrSafari(error) {
-                var filtered = error.stack.split("\n").filter(function (line) {
+                var filtered = error.stack.split('\n').filter(function(line) {
                     return !line.match(SAFARI_NATIVE_CODE_REGEXP);
                 }, this);
-                return filtered.map(function (line) {
+                return filtered.map(function(line) {
                     // Throw away eval information until we implement stacktrace.js/stackframe#8
-                    if (line.indexOf(" > eval") > -1) {
-                        line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g, ":$1");
+                    if (line.indexOf(' > eval') > -1) {
+                        line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval:\d+:\d+/g, ':$1');
                     }
-                    if (line.indexOf("@") === -1 && line.indexOf(":") === -1) {
+                    if (line.indexOf('@') === -1 && line.indexOf(':') === -1) {
                         // Safari eval frames only have function names and nothing else
                         return new StackFrame({
                             functionName: line
@@ -206,7 +214,7 @@
                         var functionNameRegex = /((.*".+"[^@]*)?[^@]*)(?:@)/;
                         var matches = line.match(functionNameRegex);
                         var functionName = matches && matches[1] ? matches[1] : undefined;
-                        var locationParts = this.extractLocation(line.replace(functionNameRegex, ""));
+                        var locationParts = this.extractLocation(line.replace(functionNameRegex, ''));
                         return new StackFrame({
                             functionName: functionName,
                             fileName: locationParts[0],
@@ -218,7 +226,8 @@
                 }, this);
             },
             parseOpera: function ErrorStackParser$$parseOpera(e) {
-                if (!e.stacktrace || e.message.indexOf("\n") > -1 && e.message.split("\n").length > e.stacktrace.split("\n").length) {
+                if (!e.stacktrace || (e.message.indexOf('\n') > -1 &&
+                    e.message.split('\n').length > e.stacktrace.split('\n').length)) {
                     return this.parseOpera9(e);
                 } else if (!e.stack) {
                     return this.parseOpera10(e);
@@ -228,7 +237,7 @@
             },
             parseOpera9: function ErrorStackParser$$parseOpera9(e) {
                 var lineRE = /Line (\d+).*script (?:in )?(\S+)/i;
-                var lines = e.message.split("\n");
+                var lines = e.message.split('\n');
                 var result = [];
                 for (var i = 2, len = lines.length; i < len; i += 2) {
                     var match = lineRE.exec(lines[i]);
@@ -244,36 +253,42 @@
             },
             parseOpera10: function ErrorStackParser$$parseOpera10(e) {
                 var lineRE = /Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i;
-                var lines = e.stacktrace.split("\n");
+                var lines = e.stacktrace.split('\n');
                 var result = [];
                 for (var i = 0, len = lines.length; i < len; i += 2) {
                     var match = lineRE.exec(lines[i]);
                     if (match) {
-                        result.push(new StackFrame({
-                            functionName: match[3] || undefined,
-                            fileName: match[2],
-                            lineNumber: match[1],
-                            source: lines[i]
-                        }));
+                        result.push(
+                            new StackFrame({
+                                functionName: match[3] || undefined,
+                                fileName: match[2],
+                                lineNumber: match[1],
+                                source: lines[i]
+                            })
+                        );
                     }
                 }
                 return result;
             },
             // Opera 10.65+ Error.stack very similar to FF/Safari
             parseOpera11: function ErrorStackParser$$parseOpera11(error) {
-                var filtered = error.stack.split("\n").filter(function (line) {
+                var filtered = error.stack.split('\n').filter(function(line) {
                     return !!line.match(FIREFOX_SAFARI_STACK_REGEXP) && !line.match(/^Error created at/);
                 }, this);
-                return filtered.map(function (line) {
-                    var tokens = line.split("@");
+                return filtered.map(function(line) {
+                    var tokens = line.split('@');
                     var locationParts = this.extractLocation(tokens.pop());
-                    var functionCall = tokens.shift() || "";
-                    var functionName = functionCall.replace(/<anonymous function(: (\w+))?>/, "$2").replace(/\([^\)]*\)/g, "") || undefined;
+                    var functionCall = (tokens.shift() || '');
+                    var functionName = functionCall
+                        .replace(/<anonymous function(: (\w+))?>/, '$2')
+                        .replace(/\([^)]*\)/g, '') || undefined;
                     var argsRaw;
-                    if (functionCall.match(/\(([^\)]*)\)/)) {
-                        argsRaw = functionCall.replace(/^[^\(]+\(([^\)]*)\)$/, "$1");
+                    if (functionCall.match(/\(([^)]*)\)/)) {
+                        argsRaw = functionCall.replace(/^[^(]+\(([^)]*)\)$/, '$1');
                     }
-                    var args = argsRaw === undefined || argsRaw === "[arguments not available]" ? undefined : argsRaw.split(",");
+                    var args = (argsRaw === undefined || argsRaw === '[arguments not available]') ?
+                        undefined : argsRaw.split(',');
+
                     return new StackFrame({
                         functionName: functionName,
                         args: args,
@@ -848,34 +863,120 @@
             }
         }
 
-        function stackGPS(error, xhr, jsonData) {
-        	var errorStack = error.toString().split("\n")[0];
-        	var gps = new StackTraceGPS();
-            var promise = new Promise(function(resolve) {
-	            var stackframes = ErrorStackParser.parse(error);
-	            resolve(Promise.all(stackframes.map(function(sf) {
-	                return new Promise(function(resolve) {
-	                    function resolveOriginal() {
-	                        resolve(sf);
-	                    }
-	                    gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
-	                });
-	            })));	
-            });
+        function generateErrorObject(error) {
+            return {
+                error: error,
+                type: error.name,
+                message: error.message,
+                inner: error.cause && typeof error.cause === "object" && error.cause instanceof Error ? generateErrorObject(error.cause) : []
+            }
+        }
 
-            promise.then(function(newFrames){
-            	newFrames.forEach(function(stackFrame, i){
-					if(stackFrame.functionName) {
-            			var fn = stackFrame.functionName + ' ';
-            		} else {
-            			var fn = '';
-            		}
-            		var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
-            		newFrames[i] = stackString;
-            	});
-            	newFrames.unshift(errorStack);
-            	jsonData.detail = newFrames.join("\n");
-            	xhr.send(JSON.stringify(jsonData));
+        function getErrorTypeSource(error) {
+            var object = generateErrorObject(error);
+            var type = null;
+            var source = null;
+
+            function iterateObj(obj) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "error") {
+                        if (objectLength(obj[key].stack) !== 0) {
+                            var stack = obj[key] ? ErrorStackParser.parse(obj[key]) : null;
+                            source = stack && stack.length > 0 ? stack[0].fileName : null;
+                        }
+                    }
+                    if (key === "type") {
+                        type = obj[key];
+                    }
+                    if (key === "inner" && obj[key].length !== 0) {
+                        iterateObj(obj[key]);
+                    }
+                });
+            }
+
+            iterateObj(object);
+
+            return { type: type, source: source };
+        }
+
+        function GenerateNewFrames(errorMessage, newFrames, cause, fileName) {
+            var lastInnerFileName = null;
+
+            newFrames.forEach(function(stackFrame, i) {
+                if (stackFrame.functionName) {
+                    var fn = stackFrame.functionName + ' ';
+                } else {
+                    var fn = '';
+                }
+                var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+                newFrames[i] = stackString;
+                if (i === 0) {
+                    lastInnerFileName = stackFrame.fileName || null;
+                }
+            });
+    
+            if (!cause) {
+                newFrames.unshift(errorMessage);
+            } else {
+                newFrames.unshift("\nCaused by: " + errorMessage);
+            }
+
+            if (fileName) {
+                return {
+                    newFrames: newFrames,
+                    fileName: lastInnerFileName
+                }
+            }
+    
+            return newFrames;
+        }
+
+        function GPSPromise(stackframes) {
+            var gps = new StackTraceGPS();
+
+            return new Promise(function(resolve) {
+                resolve(Promise.all(stackframes.map(function(sf) {
+                    return new Promise(function(resolve) {
+                        function resolveOriginal() {
+                            resolve(sf);
+                        }
+                        gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
+                    });
+                })));
+            });
+        }
+
+        function stackGPS(error, xhr, jsonData) {
+            var object = generateErrorObject(error);
+            var messagesArr = [];
+            var promiseArr = [];
+
+            function iterateObj(obj) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "error") {
+                        if (objectLength(obj[key].stack) !== 0) {
+                            messagesArr.push(obj[key].toString().split("\n")[0]);
+                            promiseArr.push(GPSPromise(ErrorStackParser.parse(obj[key])));
+                        }
+                    }
+                    if (key === "inner" && obj[key].length !== 0) {
+                        iterateObj(obj[key]);
+                    }
+                });
+            }
+
+            iterateObj(object);
+
+            Promise.all(promiseArr).then((values) => {
+                values.forEach(function(stackframe, index) {
+                    if (index === 0) {
+                        jsonData.detail = GenerateNewFrames(messagesArr[index], stackframe, false).join("\n");
+                    } else {
+                        jsonData.detail += GenerateNewFrames(messagesArr[index], stackframe, true).join("\n");
+                    }
+                });
+            }).then(function() {
+                xhr.send(JSON.stringify(jsonData));
             });
         }
 
@@ -897,6 +998,70 @@
                 }
             }
             return stack.join('\n');
+        }
+
+        function guid() {
+            var s4 = function() {
+                return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
+            }
+            return s4() + s4();
+        }
+
+        function inspectorObj (error, fullError) {
+            var obj = {};
+            obj.Id = guid();
+
+            if (typeof error === "object") {
+                var stack = error && objectLength(error.stack) !== 0 && typeof error === "object" ? ErrorStackParser.parse(error) : '';
+                obj.Type = error.name;
+                obj.Message = error.message;
+                obj.StackTrace = objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
+                obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
+                obj.Inners = error.cause && typeof error.cause === "object" && error.cause instanceof Error ? [inspectorObj(error.cause)] : [];
+            } else {
+                obj.Type = typeof fullError.error;
+                obj.Message = fullError.message;
+                obj.StackTrace = stackString(fullError);
+                obj.Source = fullError.source;
+                obj.Inners = [];
+            }
+
+            return obj;
+        }
+
+        function inspectorGPS (error) {
+            var inspectorObject = inspectorObj(error);
+            var promiseArr = [];
+
+            function iterateObj(obj, final) {
+                Object.keys(obj).forEach(function(key){
+                    if (key === "StackTrace") {
+                        if (!final) {
+                            obj[key] = GPSPromise(obj[key]);
+                            promiseArr.push(obj[key]);
+                        } else {
+                            obj[key].then(result => {
+                                var generateNewFrames = GenerateNewFrames(obj.Type + ': ' + obj.Message, result, false, true);
+                                obj[key] = generateNewFrames.newFrames.join("\n");
+                                obj['Source'] = generateNewFrames.fileName || null;
+                            });
+                        }
+                    }
+                    if (key === "Inners" && obj[key].length !== 0) {
+                        iterateObj(obj[key][0], final);
+                    }
+                });
+            }
+
+            iterateObj(inspectorObject, false);
+
+            return new Promise(function(resolve, reject) {
+                Promise.all(promiseArr).then(function(values) {
+                    iterateObj(inspectorObject, true);
+                }).then(function() {
+                    resolve(inspectorObject);
+                });
+            });
         }
 
         // Private methods
@@ -1095,6 +1260,14 @@
                     jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
                 }
 
+                // Check if the error sent has a cause
+                // Then change the type and source with the most inner error type
+                if(error.error && error.error.cause && typeof error.error.cause === "object" && error.error.cause instanceof Error) {
+                    var typeAndSource = getErrorTypeSource(error.error);
+                    jsonData.type = typeAndSource.type;
+                    jsonData.source = typeAndSource.source;
+                }
+
                 // Add payload to jsonData
                 jsonData = merge_objects(jsonData, getPayload());
 
@@ -1116,9 +1289,16 @@
                     publicAPIs.emit('message', jsonData);
 
                     if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-                    	// send message trying to pinpoint stackframes
-                    	stackGPS(error.error, xhr, jsonData);
+                        // try to pinpoint stackframes from error object
+                        inspectorGPS(error.error).then((result) => {
+                            // Add inspector to jsonData
+                            jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
+                            // send message trying to pinpoint stackframes
+                            stackGPS(error.error, xhr, jsonData);
+                        });
 	                } else {
+                        // Add inspector to jsonData
+                        jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(inspectorObj(error.error, errorLog)) });
 	                	// send message
                     	xhr.send(JSON.stringify(jsonData));
 	                }
@@ -1175,7 +1355,7 @@
 
                 if (type !== "Log") {
 
-                    var stack = error && error instanceof Error ? ErrorStackParser.parse(error) : null;
+                    var stack = error && error instanceof Error && objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
 
                     var jsonData = {
                         "title": message,
@@ -1185,6 +1365,14 @@
                         "type": error ? error.name : null,
                         "queryString": JSON.parse(JSON.stringify(queryParams))
                     };
+
+                    // Check if the error sent has a cause
+                    // Then change the type and source with the most inner error type
+                    if(error && error.cause && typeof error.cause === "object" && error.cause instanceof Error) {
+                        var typeAndSource = getErrorTypeSource(error);
+                        jsonData.type = typeAndSource.type;
+                        jsonData.source = typeAndSource.source;
+                    }
 
                     // Add payload to jsonData
                     jsonData = merge_objects(jsonData, getPayload());
@@ -1226,14 +1414,25 @@
                         publicAPIs.emit('message', jsonData);
 
                         if (error && error instanceof Error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-                            // send message trying to pinpoint stackframes
-                            stackGPS(error, xhr, jsonData);
+                            // try to pinpoint stackframes from error object
+                            inspectorGPS(error).then((result) => {
+                                // Add inspector to jsonData
+                                jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
+                                // send message trying to pinpoint stackframes
+                                stackGPS(error, xhr, jsonData);
+                            });
                         } else {
                             // send message
                             if(jsonData.errorObject && jsonData.errorObject instanceof Error) {
                                 error = jsonData.errorObject;
                                 delete jsonData.errorObject;
-                                stackGPS(error, xhr, jsonData);
+                                // try to pinpoint stackframes from error object
+                                inspectorGPS(error).then((result) => {
+                                    // Add inspector to jsonData
+                                    jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(result) });
+                                    // send message trying to pinpoint stackframes
+                                    stackGPS(error, xhr, jsonData);
+                                });
                             } else {
                                 delete jsonData.errorObject;
                                 xhr.send(JSON.stringify(jsonData));
@@ -1384,7 +1583,7 @@
 
             // with error object
             var error = errorLog;
-            var stack = error ? ErrorStackParser.parse(error) : null;
+            var stack = error && objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
             var jsonData = {
                 "title": error.message,
                 "source": stack && stack.length > 0 ? stack[0].fileName : null,
@@ -1393,6 +1592,14 @@
                 "type": error ? error.name : null,
                 "errorObject": error
             };
+
+            // Check if the error sent has a cause
+            // Then change the type and source with the most inner error type
+            if(error && error.cause && typeof error.cause === "object" && error.cause instanceof Error) {
+                var typeAndSource = getErrorTypeSource(error);
+                jsonData.type = typeAndSource.type;
+                jsonData.source = typeAndSource.source;
+            }
 
             jsonData = merge_objects(jsonData, getPayload());
             
@@ -1521,8 +1728,20 @@
                     'lineno': lineno,
                     'colno': colno,
                     'error': error
-                }
+                };
                 
+                setTimeout(function() { sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+
+                return false;
+            }
+
+            // -- Log on window unhandled rejection
+            window.onunhandledrejection = function (event) {
+                var errorLog = {
+                    'message': event.reason.message,
+                    'error': event.reason.message && event.reason.stack ? event.reason : undefined
+                };
+
                 setTimeout(function() { sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog); }, settings.breadcrumbs ? breadcrumbsDelay : 0);
 
                 return false;
