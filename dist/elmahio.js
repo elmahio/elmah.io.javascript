@@ -1407,16 +1407,16 @@
       obj.Id = guid();
       if (typeof error === "object") {
         var stack = error && objectLength(error.stack) !== 0 && typeof error === "object" ? ErrorStackParser.parse(error) : '';
-        obj.Type = error.name;
-        obj.Message = error.message;
+        obj.Type = error.name || null;
+        obj.Message = error.message || null;
         obj.StackTrace = objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
         obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
         obj.Inners = error.cause && typeof error.cause === "object" && error.cause instanceof Error ? [inspectorObj(error.cause)] : [];
       } else {
-        obj.Type = typeof fullError.error;
-        obj.Message = fullError.message;
+        obj.Type = typeof fullError.error || null;
+        obj.Message = fullError.message || null;
         obj.StackTrace = stackString(fullError);
-        obj.Source = fullError.source;
+        obj.Source = fullError.source || null;
         obj.Inners = [];
       }
       return obj;
