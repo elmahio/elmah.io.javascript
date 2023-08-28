@@ -4,7 +4,7 @@ This directory contains samples to show how to integrate elmah.io from JavaScrip
 
 ## Samples list
 
-* **Elmah.Io.JavaScript.Angular** - Integrate an Angular application with elmah.io.javascript.
+* **Elmah.Io.JavaScript.AngularAspNetCore** - Integrate an Angular in ASP.NET Core application with elmah.io.javascript.
 * **Elmah.Io.JavaScript.AngularWebpack** - Integrate an Angular with Webpack application with elmah.io.javascript.
 * **Elmah.Io.JavaScript.AspNetCore** - Integrate an ASP.NET Core application with elmah.io.javascript.
 * **Elmah.Io.JavaScript.Mvc** - Integrate an ASP.NET MVC application with elmah.io.javascript.
