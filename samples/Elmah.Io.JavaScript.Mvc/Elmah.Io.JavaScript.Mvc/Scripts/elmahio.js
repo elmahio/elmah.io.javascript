@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 3.0.0
+ * elmah.io Javascript Logger - version 4.0.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -126,42 +126,44 @@
     return StackFrame;
   })();
   var ErrorStackParser = (function() {
-    "use strict";
-    var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+\:\d+/;
-    var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+\:\d+|\(native\))/m;
-    var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code\])?$/;
+    'use strict';
+    var FIREFOX_SAFARI_STACK_REGEXP = /(^|@)\S+:\d+/;
+    var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+:\d+|\(native\))/m;
+    var SAFARI_NATIVE_CODE_REGEXP = /^(eval@)?(\[native code])?$/;
     return {
       parse: function ErrorStackParser$$parse(error) {
-        if (typeof error.stacktrace !== "undefined" || typeof error["opera#sourceloc"] !== "undefined") {
+        if (typeof error.stacktrace !== 'undefined' || typeof error['opera#sourceloc'] !== 'undefined') {
           return this.parseOpera(error);
         } else if (error.stack && error.stack.match(CHROME_IE_STACK_REGEXP)) {
           return this.parseV8OrIE(error);
         } else if (error.stack) {
           return this.parseFFOrSafari(error);
         } else {
-          throw new Error("Cannot parse given Error object");
+          throw new Error('Cannot parse given Error object');
         }
       },
       extractLocation: function ErrorStackParser$$extractLocation(urlLike) {
-        if (urlLike.indexOf(":") === -1) {
+        if (urlLike.indexOf(':') === -1) {
           return [urlLike];
         }
-        var regExp = /(.+?)(?:\:(\d+))?(?:\:(\d+))?$/;
-        var parts = regExp.exec(urlLike.replace(/[\(\)]/g, ""));
+        var regExp = /(.+?)(?::(\d+))?(?::(\d+))?$/;
+        var parts = regExp.exec(urlLike.replace(/[()]/g, ''));
         return [parts[1], parts[2] || undefined, parts[3] || undefined];
       },
       parseV8OrIE: function ErrorStackParser$$parseV8OrIE(error) {
-        var filtered = error.stack.split("\n").filter(function(line) {
+        var filtered = error.stack.split('\n').filter(function(line) {
           return !!line.match(CHROME_IE_STACK_REGEXP);
         }, this);
         return filtered.map(function(line) {
-          if (line.indexOf("(eval ") > -1) {
-            line = line.replace(/eval code/g, "eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g, "");
+          if (line.indexOf('(eval ') > -1) {
+            line = line.replace(/eval code/g, 'eval').replace(/(\(eval at [^()]*)|(,.*$)/g, '');
           }
-          var tokens = line.replace(/^\s+/, "").replace(/\(eval code/g, "(").split(/\s+/).slice(1);
-          var locationParts = this.extractLocation(tokens.pop());
-          var functionName = tokens.join(" ") || undefined;
-          var fileName = ["eval", "<anonymous>"].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
+          var sanitizedLine = line.replace(/^\s+/, '').replace(/\(eval code/g, '(').replace(/^.*?\s+/, '');
+          var location = sanitizedLine.match(/ (\(.+\)$)/);
+          sanitizedLine = location ? sanitizedLine.replace(location[0], '') : sanitizedLine;
+          var locationParts = this.extractLocation(location ? location[1] : sanitizedLine);
+          var functionName = location && sanitizedLine || undefined;
+          var fileName = ['eval', '<anonymous>'].indexOf(locationParts[0]) > -1 ? undefined : locationParts[0];
           return new StackFrame({
             functionName: functionName,
             fileName: fileName,
@@ -172,14 +174,14 @@
         }, this);
       },
       parseFFOrSafari: function ErrorStackParser$$parseFFOrSafari(error) {
-        var filtered = error.stack.split("\n").filter(function(line) {
+        var filtered = error.stack.split('\n').filter(function(line) {
           return !line.match(SAFARI_NATIVE_CODE_REGEXP);
         }, this);
         return filtered.map(function(line) {
-          if (line.indexOf(" > eval") > -1) {
-            line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g, ":$1");
+          if (line.indexOf(' > eval') > -1) {
+            line = line.replace(/ line (\d+)(?: > eval line \d+)* > eval:\d+:\d+/g, ':$1');
           }
-          if (line.indexOf("@") === -1 && line.indexOf(":") === -1) {
+          if (line.indexOf('@') === -1 && line.indexOf(':') === -1) {
             return new StackFrame({
               functionName: line
             });
@@ -187,7 +189,7 @@
             var functionNameRegex = /((.*".+"[^@]*)?[^@]*)(?:@)/;
             var matches = line.match(functionNameRegex);
             var functionName = matches && matches[1] ? matches[1] : undefined;
-            var locationParts = this.extractLocation(line.replace(functionNameRegex, ""));
+            var locationParts = this.extractLocation(line.replace(functionNameRegex, ''));
             return new StackFrame({
               functionName: functionName,
               fileName: locationParts[0],
@@ -199,7 +201,7 @@
         }, this);
       },
       parseOpera: function ErrorStackParser$$parseOpera(e) {
-        if (!e.stacktrace || e.message.indexOf("\n") > -1 && e.message.split("\n").length > e.stacktrace.split("\n").length) {
+        if (!e.stacktrace || (e.message.indexOf('\n') > -1 && e.message.split('\n').length > e.stacktrace.split('\n').length)) {
           return this.parseOpera9(e);
         } else if (!e.stack) {
           return this.parseOpera10(e);
@@ -209,7 +211,7 @@
       },
       parseOpera9: function ErrorStackParser$$parseOpera9(e) {
         var lineRE = /Line (\d+).*script (?:in )?(\S+)/i;
-        var lines = e.message.split("\n");
+        var lines = e.message.split('\n');
         var result = [];
         for (var i = 2, len = lines.length; i < len; i += 2) {
           var match = lineRE.exec(lines[i]);
@@ -225,7 +227,7 @@
       },
       parseOpera10: function ErrorStackParser$$parseOpera10(e) {
         var lineRE = /Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i;
-        var lines = e.stacktrace.split("\n");
+        var lines = e.stacktrace.split('\n');
         var result = [];
         for (var i = 0, len = lines.length; i < len; i += 2) {
           var match = lineRE.exec(lines[i]);
@@ -241,19 +243,19 @@
         return result;
       },
       parseOpera11: function ErrorStackParser$$parseOpera11(error) {
-        var filtered = error.stack.split("\n").filter(function(line) {
+        var filtered = error.stack.split('\n').filter(function(line) {
           return !!line.match(FIREFOX_SAFARI_STACK_REGEXP) && !line.match(/^Error created at/);
         }, this);
         return filtered.map(function(line) {
-          var tokens = line.split("@");
+          var tokens = line.split('@');
           var locationParts = this.extractLocation(tokens.pop());
-          var functionCall = tokens.shift() || "";
-          var functionName = functionCall.replace(/<anonymous function(: (\w+))?>/, "$2").replace(/\([^\)]*\)/g, "") || undefined;
+          var functionCall = (tokens.shift() || '');
+          var functionName = functionCall.replace(/<anonymous function(: (\w+))?>/, '$2').replace(/\([^)]*\)/g, '') || undefined;
           var argsRaw;
-          if (functionCall.match(/\(([^\)]*)\)/)) {
-            argsRaw = functionCall.replace(/^[^\(]+\(([^\)]*)\)$/, "$1");
+          if (functionCall.match(/\(([^)]*)\)/)) {
+            argsRaw = functionCall.replace(/^[^(]+\(([^)]*)\)$/, '$1');
           }
-          var args = argsRaw === undefined || argsRaw === "[arguments not available]" ? undefined : argsRaw.split(",");
+          var args = (argsRaw === undefined || argsRaw === '[arguments not available]') ? undefined : argsRaw.split(',');
           return new StackFrame({
             functionName: functionName,
             args: args,
@@ -1004,10 +1006,14 @@
       };
     };
   })(SourceMap, StackFrame);
+  var myScript = null;
   var scriptFile = document.getElementsByTagName('script');
-  var scriptIndex = scriptFile.length - 1;
-  var myScript = scriptFile[scriptIndex];
-  var queryString = myScript.src.replace(/^[^\?]+\??/, '');
+  for (var i = 0; i < scriptFile.length; ++i) {
+    if (isMe(scriptFile[i])) {
+      myScript = scriptFile[i];
+    }
+  }
+  var queryString = myScript != null ? myScript.src.replace(/^[^\?]+\??/, '') : null;
   var params = parseQuery(queryString);
   var paramsLength = objectLength(params);
   var debugSettings = {
@@ -1023,8 +1029,12 @@
     logId: null,
     debug: false,
     application: null,
-    filter: null
+    filter: null,
+    captureConsoleMinimumLevel: 'none',
+    breadcrumbs: false,
+    breadcrumbsNumber: 10
   };
+  var breadcrumbsDelay = 100;
   var extend = function() {
     var extended = {};
     var deep = false;
@@ -1050,6 +1060,20 @@
     }
     return extended;
   };
+
+  function isMe(scriptElem) {
+    if (scriptElem.getAttribute('src') != null) {
+      return scriptElem.getAttribute('src').indexOf('elmahio') != -1 && scriptElem.getAttribute('src').indexOf('apiKey') != -1 && scriptElem.getAttribute('src').indexOf('logId') != -1;
+    }
+  }
+
+  function isInt(n) {
+    return Number(n) === n && n % 1 === 0;
+  }
+
+  function isFloat(n) {
+    return Number(n) === n && n % 1 !== 0;
+  }
 
   function parseQuery(query) {
     var Params = new Object();
@@ -1103,9 +1127,67 @@
     }
     return obj3;
   }
+
+  function isString(what) {
+    return Object.prototype.toString.call(what) === '[object String]';
+  }
+
+  function cssSelectorString(elem) {
+    var MAX_TRAVERSE_HEIGHT = 5,
+      MAX_OUTPUT_LEN = 80,
+      out = [],
+      height = 0,
+      len = 0,
+      separator = ' > ',
+      sepLength = separator.length,
+      nextStr;
+    while (elem && height++ < MAX_TRAVERSE_HEIGHT) {
+      nextStr = htmlElementAsString(elem);
+      if (nextStr === 'html' || (height > 1 && len + out.length * sepLength + nextStr.length >= MAX_OUTPUT_LEN)) {
+        break;
+      }
+      out.push(nextStr);
+      len += nextStr.length;
+      elem = elem.parentNode;
+    }
+    return out.reverse().join(separator);
+  }
+
+  function htmlElementAsString(elem) {
+    var out = [],
+      className, classes, key, attr, i;
+    if (!elem || !elem.tagName) {
+      return '';
+    }
+    out.push(elem.tagName.toLowerCase());
+    if (elem.id) {
+      out.push('#' + elem.id);
+    }
+    className = elem.className;
+    if (className && isString(className)) {
+      classes = className.split(/\s+/);
+      for (i = 0; i < classes.length; i++) {
+        out.push('.' + classes[i]);
+      }
+    }
+    var attrWhitelist = ['type', 'name', 'title', 'alt'];
+    for (i = 0; i < attrWhitelist.length; i++) {
+      key = attrWhitelist[i];
+      attr = elem.getAttribute(key);
+      if (attr) {
+        out.push('[' + key + '="' + attr + '"]');
+      }
+    }
+    return out.join('');
+  }
+  var parseHash = function(url) {
+    return url.split('#')[1] || '';
+  };
   var Constructor = function(options) {
     var publicAPIs = {};
     var settings;
+    var breadcrumbs = [];
+    var lastHref = window.location && window.location.href;
 
     function getPayload() {
       var payload = {
@@ -1113,10 +1195,6 @@
         "application": settings.application
       };
       var payload_data = [];
-      if (navigator.language) payload_data.push({
-        "key": "User-Language",
-        "value": navigator.language
-      });
       if (document.documentMode) payload_data.push({
         "key": "Document-Mode",
         "value": document.documentMode
@@ -1151,6 +1229,10 @@
       });
       payload.data = payload_data;
       var payload_serverVariables = [];
+      if (navigator.language) payload_serverVariables.push({
+        "key": "User-Language",
+        "value": navigator.language
+      });
       if (navigator.userAgent) payload_serverVariables.push({
         "key": "User-Agent",
         "value": navigator.userAgent
@@ -1183,11 +1265,74 @@
       }
     }
 
-    function stackGPS(error, xhr, jsonData) {
-      var errorStack = error.toString().split("\n")[0];
+    function generateErrorObject(error) {
+      return {
+        error: error,
+        type: error.name,
+        message: error.message,
+        inner: error.cause && typeof error.cause === "object" && error.cause instanceof Error ? generateErrorObject(error.cause) : []
+      }
+    }
+
+    function getErrorTypeSource(error) {
+      var object = generateErrorObject(error);
+      var type = null;
+      var source = null;
+
+      function iterateObj(obj) {
+        Object.keys(obj).forEach(function(key) {
+          if (key === "error") {
+            if (objectLength(obj[key].stack) !== 0) {
+              var stack = obj[key] ? ErrorStackParser.parse(obj[key]) : null;
+              source = stack && stack.length > 0 ? stack[0].fileName : null;
+            }
+          }
+          if (key === "type") {
+            type = obj[key];
+          }
+          if (key === "inner" && obj[key].length !== 0) {
+            iterateObj(obj[key]);
+          }
+        });
+      }
+      iterateObj(object);
+      return {
+        type: type,
+        source: source
+      };
+    }
+
+    function GenerateNewFrames(errorMessage, newFrames, cause, fileName) {
+      var lastInnerFileName = null;
+      newFrames.forEach(function(stackFrame, i) {
+        if (stackFrame.functionName) {
+          var fn = stackFrame.functionName + ' ';
+        } else {
+          var fn = '';
+        }
+        var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
+        newFrames[i] = stackString;
+        if (i === 0) {
+          lastInnerFileName = stackFrame.fileName || null;
+        }
+      });
+      if (!cause) {
+        newFrames.unshift(errorMessage);
+      } else {
+        newFrames.unshift("\nCaused by: " + errorMessage);
+      }
+      if (fileName) {
+        return {
+          newFrames: newFrames,
+          fileName: lastInnerFileName
+        }
+      }
+      return newFrames;
+    }
+
+    function GPSPromise(stackframes) {
       var gps = new StackTraceGPS();
-      var promise = new Promise(function(resolve) {
-        var stackframes = ErrorStackParser.parse(error);
+      return new Promise(function(resolve) {
         resolve(Promise.all(stackframes.map(function(sf) {
           return new Promise(function(resolve) {
             function resolveOriginal() {
@@ -1197,20 +1342,228 @@
           });
         })));
       });
-      promise.then(function(newFrames) {
-        newFrames.forEach(function(stackFrame, i) {
-          if (stackFrame.functionName) {
-            var fn = stackFrame.functionName + ' ';
-          } else {
-            var fn = '';
+    }
+
+    function stackGPS(error, xhr, jsonData) {
+      var object = generateErrorObject(error);
+      var messagesArr = [];
+      var promiseArr = [];
+
+      function iterateObj(obj) {
+        Object.keys(obj).forEach(function(key) {
+          if (key === "error") {
+            if (objectLength(obj[key].stack) !== 0) {
+              messagesArr.push(obj[key].toString().split("\n")[0]);
+              promiseArr.push(GPSPromise(ErrorStackParser.parse(obj[key])));
+            }
           }
-          var stackString = '    at ' + fn + '(' + stackFrame.fileName + ':' + stackFrame.lineNumber + ':' + stackFrame.columnNumber + ')';
-          newFrames[i] = stackString;
+          if (key === "inner" && obj[key].length !== 0) {
+            iterateObj(obj[key]);
+          }
         });
-        newFrames.unshift(errorStack);
-        jsonData.detail = newFrames.join("\n");
+      }
+      iterateObj(object);
+      Promise.all(promiseArr).then((values) => {
+        values.forEach(function(stackframe, index) {
+          if (index === 0) {
+            jsonData.detail = GenerateNewFrames(messagesArr[index], stackframe, false).join("\n");
+          } else {
+            jsonData.detail += GenerateNewFrames(messagesArr[index], stackframe, true).join("\n");
+          }
+        });
+      }).then(function() {
         xhr.send(JSON.stringify(jsonData));
       });
+    }
+
+    function stackString(error) {
+      var typeOF = typeof error.error;
+      var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+      return typeOFCapitalized + ': ' + error.error + '\n' + '    at ' + '(' + error.source + ':' + error.lineno + ':' + error.colno + ')';
+    }
+
+    function manipulateStack(errorStack, severity, message) {
+      var stack = [];
+      for (var i = 0; i < errorStack.length; i++) {
+        if (errorStack[i] === "Error") {
+          stack.push(severity + ": " + message);
+        }
+        if (!errorStack[i].match(/elmahio.js|elmahio.min.js/g) && errorStack[i] !== "Error") {
+          stack.push(errorStack[i]);
+        }
+      }
+      return stack.join('\n');
+    }
+
+    function guid() {
+      var s4 = function() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1).toUpperCase();
+      }
+      return s4() + s4();
+    }
+
+    function inspectorObj(error, fullError) {
+      var obj = {};
+      obj.Id = guid();
+      if (typeof error === "object") {
+        var stack = error && objectLength(error.stack) !== 0 && typeof error === "object" ? ErrorStackParser.parse(error) : '';
+        obj.Type = error.name || null;
+        obj.Message = error.message || null;
+        obj.StackTrace = objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
+        obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
+        obj.Inners = error.cause && typeof error.cause === "object" && error.cause instanceof Error ? [inspectorObj(error.cause)] : [];
+      } else {
+        obj.Type = typeof fullError.error || null;
+        obj.Message = fullError.message || null;
+        obj.StackTrace = stackString(fullError);
+        obj.Source = fullError.source || null;
+        obj.Inners = [];
+      }
+      return obj;
+    }
+
+    function inspectorGPS(error) {
+      var inspectorObject = inspectorObj(error);
+      var promiseArr = [];
+
+      function iterateObj(obj, final) {
+        Object.keys(obj).forEach(function(key) {
+          if (key === "StackTrace") {
+            if (!final) {
+              obj[key] = GPSPromise(obj[key]);
+              promiseArr.push(obj[key]);
+            } else {
+              obj[key].then(result => {
+                var generateNewFrames = GenerateNewFrames(obj.Type + ': ' + obj.Message, result, false, true);
+                obj[key] = generateNewFrames.newFrames.join("\n");
+                obj['Source'] = generateNewFrames.fileName || null;
+              });
+            }
+          }
+          if (key === "Inners" && obj[key].length !== 0) {
+            iterateObj(obj[key][0], final);
+          }
+        });
+      }
+      iterateObj(inspectorObject, false);
+      return new Promise(function(resolve, reject) {
+        Promise.all(promiseArr).then(function(values) {
+          iterateObj(inspectorObject, true);
+        }).then(function() {
+          resolve(inspectorObject);
+        });
+      });
+    }
+    var recordBreadcrumb = function(obj) {
+      var crumb = merge_objects({
+          'dateTime': new Date().toISOString()
+        }, obj),
+        breadcrumbs_number = 10;
+      breadcrumbs.push(crumb);
+      if (options.breadcrumbsNumber >= 0 && typeof options.breadcrumbsNumber === "number") {
+        if (options.breadcrumbsNumber > 25) {
+          breadcrumbs_number = 25;
+        } else if (options.breadcrumbsNumber <= 25) {
+          breadcrumbs_number = options.breadcrumbsNumber;
+        }
+      }
+      if (breadcrumbs.length > breadcrumbs_number) {
+        breadcrumbs.shift();
+      }
+    }
+    var breadcrumbClickEventHandler = function(evt) {
+      var target;
+      try {
+        target = cssSelectorString(evt.target);
+      } catch (e) {
+        target = "<unknown_target>";
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Click",
+        "message": target
+      });
+    }
+    var breadcrumbFormSubmitEventHandler = function(evt) {
+      var target;
+      try {
+        target = cssSelectorString(evt.target);
+      } catch (e) {
+        target = "<unknown_target>";
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Form submit",
+        "message": target
+      });
+    }
+    var breadcrumbWindowEventHandler = function(evt) {
+      var type = evt.type,
+        message = null;
+      switch (type) {
+        case "load":
+          message = "Page loaded";
+          break;
+        case "DOMContentLoaded":
+          message = "DOMContentLoaded";
+          break;
+        case "pageshow":
+          message = "Page shown";
+          break;
+        case "pagehide":
+          message = "Page hidden";
+          break;
+        case "popstate":
+          message = "Navigated from: " + lastHref + " to: " + window.location.href;
+          break;
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Navigation",
+        "message": message
+      });
+    }
+    var breadcrumbHashChangeEventHandler = function(evt) {
+      var oldURL = evt.oldURL,
+        newURL = evt.newURL,
+        from = null,
+        to = null,
+        message = null;
+      if (oldURL && newURL) {
+        from = parseHash(oldURL);
+        to = parseHash(newURL);
+        message = "from: '" + from + "' to: '" + to + "'";
+      } else {
+        to = location.hash;
+        message = "to: '" + to + "'";
+      }
+      recordBreadcrumb({
+        "severity": "Information",
+        "action": "Navigation",
+        "message": "Hash changed " + message
+      });
+    }
+    var breadcrumbXHRHandler = function(evt, method, url) {
+      var status = evt && evt.target ? evt.target.status : 0,
+        severity = null,
+        method = method.toUpperCase(),
+        url = url,
+        regex = /https:\/\/api.elmah.io/g;
+      if (url.match(regex) == null) {
+        if (status > 0 && status < 400) {
+          severity = "Information";
+        } else if (status > 399 && status < 500) {
+          severity = "Warning";
+        } else if (status >= 500) {
+          severity = "Error";
+        }
+        var statusCode = status > 0 ? " (" + status + ")" : "";
+        recordBreadcrumb({
+          "severity": severity,
+          "action": "Request",
+          "message": "[" + method + "] " + url + statusCode
+        });
+      }
     }
     var sendPayload = function(apiKey, logId, callback, errorLog) {
       var api_key = apiKey,
@@ -1218,8 +1571,8 @@
         error = errorLog,
         send = 1,
         queryParams = getSearchParameters(),
-        stack = error.error ? ErrorStackParser.parse(error.error) : '';
-      if (error && error.colno === 0 && error.lineno === 0 && stack === '' && error.message && error.message === "Script error.") {
+        stack = error.error && objectLength(error.error.stack) !== 0 && typeof error.error === "object" ? ErrorStackParser.parse(error.error) : '';
+      if (error && error.colno === 0 && error.lineno === 0 && (!stack || stack === '') && error.message && (error.message === "Script error." || error.message === "Script error")) {
         if (settings.debug) {
           console.log('%c \u2BC8 Error log: ' + '%c \uD83D\uDEC8 Ignoring error from external script ', debugSettings.lightCSS, debugSettings.warningCSS);
         }
@@ -1238,6 +1591,10 @@
             if (xhr.status === 201) {
               callback('success', xhr.statusText);
             }
+            if (xhr.status >= 400 && xhr.status <= 499) {
+              callback('error', xhr.statusText);
+              publicAPIs.emit('error', xhr.status, xhr.statusText);
+            }
           }
         };
         xhr.onerror = function(e) {
@@ -1252,7 +1609,23 @@
           "type": error.error ? error.error.name : null,
           "queryString": JSON.parse(JSON.stringify(queryParams))
         };
+        if (error.error && (objectLength(error.error.stack) === 0) && typeof jsonData.detail === "undefined") {
+          var typeOF = typeof errorLog.error;
+          var typeOFCapitalized = typeOF.charAt(0).toUpperCase() + typeOF.slice(1);
+          jsonData.detail = stackString(errorLog);
+          jsonData.source = errorLog.source;
+          jsonData.title = "Uncaught " + typeOFCapitalized + ": " + errorLog.error;
+        }
+        if (error.error && error.error.cause && typeof error.error.cause === "object" && error.error.cause instanceof Error) {
+          var typeAndSource = getErrorTypeSource(error.error);
+          jsonData.type = typeAndSource.type;
+          jsonData.source = typeAndSource.source;
+        }
         jsonData = merge_objects(jsonData, getPayload());
+        if (breadcrumbs.length > 0) {
+          jsonData.breadcrumbs = breadcrumbs;
+          breadcrumbs = [];
+        }
         if (settings.filter !== null) {
           if (settings.filter(jsonData)) {
             send = 0;
@@ -1260,9 +1633,19 @@
         }
         if (send === 1) {
           publicAPIs.emit('message', jsonData);
-          if (error.error && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-            stackGPS(error.error, xhr, jsonData);
+          if (error.error && typeof error.error === "object" && objectLength(error.error.stack) !== 0 && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+            inspectorGPS(error.error).then((result) => {
+              jsonData.data.push({
+                "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
+                "value": JSON.stringify(result)
+              });
+              stackGPS(error.error, xhr, jsonData);
+            });
           } else {
+            jsonData.data.push({
+              "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
+              "value": JSON.stringify(inspectorObj(error.error, errorLog))
+            });
             xhr.send(JSON.stringify(jsonData));
           }
         }
@@ -1291,6 +1674,10 @@
             if (xhr.status === 201) {
               callback('success', xhr.statusText);
             }
+            if (xhr.status >= 400 && xhr.status <= 499) {
+              callback('error', xhr.statusText);
+              publicAPIs.emit('error', xhr.status, xhr.statusText);
+            }
           }
         };
         xhr.onerror = function(e) {
@@ -1298,7 +1685,7 @@
           publicAPIs.emit('error', xhr.status, xhr.statusText);
         }
         if (type !== "Log") {
-          var stack = error ? ErrorStackParser.parse(error) : null;
+          var stack = error && error instanceof Error && objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
           var jsonData = {
             "title": message,
             "source": stack && stack.length > 0 ? stack[0].fileName : null,
@@ -1307,9 +1694,14 @@
             "type": error ? error.name : null,
             "queryString": JSON.parse(JSON.stringify(queryParams))
           };
+          if (error && error.cause && typeof error.cause === "object" && error.cause instanceof Error) {
+            var typeAndSource = getErrorTypeSource(error);
+            jsonData.type = typeAndSource.type;
+            jsonData.source = typeAndSource.source;
+          }
           jsonData = merge_objects(jsonData, getPayload());
         } else {
-          jsonData = error;
+          var jsonData = error;
         }
         if (settings.filter !== null) {
           if (settings.filter(jsonData)) {
@@ -1318,11 +1710,41 @@
         }
         if (send === 1) {
           if (jsonData.title) {
+            if (breadcrumbs.length > 0) {
+              if (jsonData.breadcrumbs && jsonData.breadcrumbs.length > 0) {
+                breadcrumbs = breadcrumbs.reverse();
+                for (var i = 0; i < breadcrumbs.length; i++) {
+                  jsonData.breadcrumbs.unshift(breadcrumbs[i]);
+                }
+              } else {
+                jsonData.breadcrumbs = breadcrumbs;
+              }
+              breadcrumbs = [];
+            }
             publicAPIs.emit('message', jsonData);
-            if (error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
-              stackGPS(error, xhr, jsonData);
+            if (error && error instanceof Error && type !== "Log" && typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]") !== -1) {
+              inspectorGPS(error).then((result) => {
+                jsonData.data.push({
+                  "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
+                  "value": JSON.stringify(result)
+                });
+                stackGPS(error, xhr, jsonData);
+              });
             } else {
-              xhr.send(JSON.stringify(jsonData));
+              if (jsonData.errorObject && jsonData.errorObject instanceof Error) {
+                error = jsonData.errorObject;
+                delete jsonData.errorObject;
+                inspectorGPS(error).then((result) => {
+                  jsonData.data.push({
+                    "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
+                    "value": JSON.stringify(result)
+                  });
+                  stackGPS(error, xhr, jsonData);
+                });
+              } else {
+                delete jsonData.errorObject;
+                xhr.send(JSON.stringify(jsonData));
+              }
             }
           } else {
             callback('missing-title', xhr.statusText);
@@ -1332,44 +1754,177 @@
         return console.log('Login api error');
       }
     };
-    publicAPIs.error = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg);
+    var sendPayloadFromConsole = function(apiKey, logId, callback, logType, errorLog) {
+      var api_key = apiKey,
+        log_id = logId,
+        message = errorLog.message,
+        messageTemplate = errorLog.message,
+        type = logType,
+        args = Object.values(errorLog.arguments),
+        send = 1,
+        queryParams = getSearchParameters();
+
+      function format(f, args) {
+        var formatRegExp = /%[sdif]/g;
+        var str = f;
+        if (args.length > 1) {
+          if (String(f).match(/%[sdif]/g)) {
+            var i = 0;
+            str = String(f).replace(formatRegExp, function(x) {
+              switch (x) {
+                case '%s':
+                  i++;
+                  return args[i] ? String(args[i]) : '%s';
+                case '%d':
+                  i++;
+                  return args[i] ? (isInt(args[i]) || isFloat(args[i])) ? parseInt(args[i]) : 'NaN' : '%d';
+                case '%i':
+                  i++;
+                  return args[i] ? (isInt(args[i]) || isFloat(args[i])) ? parseInt(args[i]) : 'NaN' : '%i';
+                case '%f':
+                  i++;
+                  return args[i] ? (isInt(args[i]) || isFloat(args[i])) ? parseFloat(args[i]) : 'NaN' : '%f';
+                default:
+                  return x;
+              }
+            });
+            for (var len = args.length, x = args[++i]; i < len; x = args[++i]) {
+              if (x === null || typeof x !== 'object') {
+                str += ' ' + x;
+              } else {
+                str += ' ' + String(Object.prototype.toString.call(x));
+              }
+            }
+          } else {
+            str = args.join(' ');
+          }
+        }
+        return str;
+      }
+      message = format(message, args);
+      if (typeof message !== "string" && message !== undefined) {
+        message = message.toString();
+      }
+      if (typeof messageTemplate !== "string" && messageTemplate !== undefined) {
+        messageTemplate = messageTemplate.toString();
+      }
+      if ((api_key !== null && log_id !== null) || (paramsLength === 2)) {
+        if (params.hasOwnProperty('apiKey') && params.hasOwnProperty('logId')) {
+          api_key = params['apiKey'];
+          log_id = params['logId'];
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://api.elmah.io/v3/messages/" + log_id + "?api_key=" + api_key, true);
+        xhr.setRequestHeader('Content-type', 'application/json');
+        xhr.onload = function(e) {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 201) {
+              callback('success', xhr.statusText);
+            }
+            if (xhr.status >= 400 && xhr.status <= 499) {
+              callback('error', xhr.statusText);
+              publicAPIs.emit('error', xhr.status, xhr.statusText);
+            }
+          }
+        };
+        xhr.onerror = function(e) {
+          callback('error', xhr.statusText);
+          publicAPIs.emit('error', xhr.status, xhr.statusText);
+        }
+        var jsonData = {
+          "title": message,
+          "titleTemplate": messageTemplate,
+          "detail": manipulateStack(new Error().stack.split('\n'), type, message),
+          "severity": type,
+          "type": null,
+          "queryString": JSON.parse(JSON.stringify(queryParams))
+        };
+        jsonData = merge_objects(jsonData, getPayload());
+        if (breadcrumbs.length > 0) {
+          jsonData.breadcrumbs = breadcrumbs;
+          breadcrumbs = [];
+        }
+        if (settings.filter !== null) {
+          if (settings.filter(jsonData)) {
+            send = 0;
+          }
+        }
+        if (send === 1) {
+          if (jsonData.title) {
+            publicAPIs.emit('message', jsonData);
+            xhr.send(JSON.stringify(jsonData));
+          } else {
+            callback('missing-title', xhr.statusText);
+          }
+        }
+      } else {
+        return console.log('Login api error');
+      }
+    };
+    var sendPrefilledLogMessage = function(errorLog) {
+      if (!errorLog) return getPayload();
+      var error = errorLog;
+      var stack = error && objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
+      var jsonData = {
+        "title": error.message,
+        "source": stack && stack.length > 0 ? stack[0].fileName : null,
+        "detail": error ? error.stack : null,
+        "severity": "Error",
+        "type": error ? error.name : null,
+        "errorObject": error
+      };
+      if (error && error.cause && typeof error.cause === "object" && error.cause instanceof Error) {
+        var typeAndSource = getErrorTypeSource(error);
+        jsonData.type = typeAndSource.type;
+        jsonData.source = typeAndSource.source;
+      }
+      jsonData = merge_objects(jsonData, getPayload());
+      return jsonData;
     };
     publicAPIs.error = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
-    };
-    publicAPIs.verbose = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Error', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.verbose = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
-    };
-    publicAPIs.debug = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Verbose', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.debug = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
-    };
-    publicAPIs.information = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Debug', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.information = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
-    };
-    publicAPIs.warning = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Information', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.warning = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
-    };
-    publicAPIs.fatal = function(msg) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Warning', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.fatal = function(msg, error) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Fatal', msg, error);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
     };
     publicAPIs.log = function(obj) {
-      sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+      setTimeout(function() {
+        sendManualPayload(settings.apiKey, settings.logId, confirmResponse, 'Log', null, obj);
+      }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+    };
+    publicAPIs.message = function(error) {
+      return sendPrefilledLogMessage(error);
+    };
+    publicAPIs.addBreadcrumb = function(msg, severity, evt) {
+      recordBreadcrumb({
+        "severity": (severity != undefined && isString(severity)) ? severity : "Information",
+        "action": (evt != undefined && isString(evt)) ? evt : "Log",
+        "message": (msg != undefined && isString(msg)) ? msg : "This is just a test message."
+      });
     };
     publicAPIs.on = function(name, callback, ctx) {
       var e = this.e || (this.e = {});
@@ -1391,6 +1946,46 @@
     };
     publicAPIs.init = function(options) {
       settings = extend(defaults, options || {});
+      if (settings.breadcrumbs) {
+        if (document.addEventListener) {
+          document.addEventListener('click', breadcrumbClickEventHandler, false);
+          document.addEventListener('submit', breadcrumbFormSubmitEventHandler, false);
+        } else if (document.attachEvent) {
+          document.attachEvent('click', breadcrumbClickEventHandler, false);
+          document.attachEvent('submit', breadcrumbFormSubmitEventHandler, false);
+        }
+        if (window.addEventListener) {
+          window.addEventListener('load', breadcrumbWindowEventHandler, false);
+          window.addEventListener('DOMContentLoaded', breadcrumbWindowEventHandler, false);
+          window.addEventListener('pageshow', breadcrumbWindowEventHandler, false);
+          window.addEventListener('pagehide', breadcrumbWindowEventHandler, false);
+          window.addEventListener('hashchange', breadcrumbHashChangeEventHandler, false);
+        } else if (window.attachEvent) {
+          window.attachEvent('load', breadcrumbWindowEventHandler, false);
+          window.attachEvent('DOMContentLoaded', breadcrumbWindowEventHandler, false);
+          window.attachEvent('pageshow', breadcrumbWindowEventHandler, false);
+          window.attachEvent('pagehide', breadcrumbWindowEventHandler, false);
+          window.attachEvent('hashchange', breadcrumbHashChangeEventHandler, false);
+        }
+        if (window.history && window.history.pushState && window.history.replaceState) {
+          var old_onpopstate = window.onpopstate;
+          window.onpopstate = function(evt) {
+            breadcrumbWindowEventHandler(evt);
+            if (old_onpopstate) {
+              return old_onpopstate.apply(this, arguments);
+            }
+          };
+        }
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+          var open = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url) {
+            this.addEventListener("loadend", function(event) {
+              breadcrumbXHRHandler(event, method, url);
+            }, false);
+            open.apply(this, arguments);
+          };
+        }
+      }
       window.onerror = function(message, source, lineno, colno, error) {
         var errorLog = {
           'message': message,
@@ -1398,9 +1993,75 @@
           'lineno': lineno,
           'colno': colno,
           'error': error
-        }
-        sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+        };
+        setTimeout(function() {
+          sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+        }, settings.breadcrumbs ? breadcrumbsDelay : 0);
         return false;
+      }
+      window.onunhandledrejection = function(event) {
+        var errorLog = {
+          'message': event.reason.message,
+          'error': event.reason.message && event.reason.stack ? event.reason : undefined
+        };
+        setTimeout(function() {
+          sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
+        }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+        return false;
+      }
+      if (options && options.captureConsoleMinimumLevel !== "none") {
+        if (options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "warn" || options.captureConsoleMinimumLevel === "error" || options.captureConsoleMinimumLevel === "debug") {
+          var _error = console.error;
+          console.error = function(errMessage) {
+            var errorLog = {
+              'message': errMessage,
+              'arguments': arguments
+            }
+            setTimeout(function() {
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Error', errorLog);
+            }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+            _error.apply(console, arguments);
+          };
+          if (options.captureConsoleMinimumLevel !== "error") {
+            var _warning = console.warn;
+            console.warn = function(warnMessage) {
+              var errorLog = {
+                'message': warnMessage,
+                'arguments': arguments
+              }
+              setTimeout(function() {
+                sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Warning', errorLog);
+              }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+              _warning.apply(console, arguments);
+            };
+          }
+        }
+        if (options.captureConsoleMinimumLevel === "info" || options.captureConsoleMinimumLevel === "debug") {
+          var _info = console.info;
+          console.info = function(infoMessage) {
+            var errorLog = {
+              'message': infoMessage,
+              'arguments': arguments
+            }
+            setTimeout(function() {
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Information', errorLog);
+            }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+            _info.apply(console, arguments);
+          };
+        }
+        if (options.captureConsoleMinimumLevel === "debug") {
+          var _debug = console.debug;
+          console.debug = function(debugMessage) {
+            var errorLog = {
+              'message': debugMessage,
+              'arguments': arguments
+            }
+            setTimeout(function() {
+              sendPayloadFromConsole(settings.apiKey, settings.logId, confirmResponse, 'Debug', errorLog);
+            }, settings.breadcrumbs ? breadcrumbsDelay : 0);
+            _debug.apply(console, arguments);
+          };
+        }
       }
     };
     publicAPIs.init(options);
