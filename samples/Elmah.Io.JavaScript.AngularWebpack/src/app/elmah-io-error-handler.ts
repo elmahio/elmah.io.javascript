@@ -3,7 +3,7 @@ import {ErrorHandler} from '@angular/core';
 import * as Elmahio from 'elmah.io.javascript';
 
 export class ElmahIoErrorHandler implements ErrorHandler {
-  logger: any;
+  logger: Elmahio;
   constructor() {
     this.logger = new Elmahio({
       apiKey: 'API_KEY',
