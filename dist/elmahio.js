@@ -1331,16 +1331,21 @@
     }
 
     function GPSPromise(stackframes) {
-      var gps = new StackTraceGPS();
+      if (stackframes) {
+        var gps = new StackTraceGPS();
+        return new Promise(function(resolve) {
+          resolve(Promise.all(stackframes.map(function(sf) {
+            return new Promise(function(resolve) {
+              function resolveOriginal() {
+                resolve(sf);
+              }
+              gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
+            });
+          })));
+        });
+      }
       return new Promise(function(resolve) {
-        resolve(Promise.all(stackframes.map(function(sf) {
-          return new Promise(function(resolve) {
-            function resolveOriginal() {
-              resolve(sf);
-            }
-            gps.pinpoint(sf).then(resolve, resolveOriginal)['catch'](resolveOriginal);
-          });
-        })));
+        return resolve([]);
       });
     }
 
