@@ -11,3 +11,4 @@ This directory contains samples to show how to integrate elmah.io from JavaScrip
 * **Elmah.Io.JavaScript.VueJs** - Integrate a Vue.js application with elmah.io.javascript.
 * **elmahio-react** - Integrate a React application with elmah.io.javascript.
 * **elmahio-react-typescript** - Integrate a React TypeScript application with elmah.io.javascript.
+* **elmahio-sveltekit** - Integrate a SvelteKit application with elmah.io.javascript.
