@@ -1417,6 +1417,39 @@
         obj.StackTrace = objectLength(error.stack) !== 0 ? ErrorStackParser.parse(error) : null;
         obj.Source = stack && stack.length > 0 ? stack[0].fileName : null;
         obj.Inners = error.cause && typeof error.cause === "object" && error.cause instanceof Error ? [inspectorObj(error.cause)] : [];
+        if (error.cause && obj.Inners instanceof Array && obj.Inners.length === 0) {
+          if (typeof error.cause === "number" || typeof error.cause === "string" || typeof error.cause === "boolean") {
+            obj.ExceptionSpecific = [{
+              key: "cause",
+              value: error.cause
+            }];
+          }
+          if (typeof error.cause === "function") {
+            obj.ExceptionSpecific = [{
+              key: "cause",
+              value: error.cause.toString()
+            }];
+          }
+          if (typeof error.cause === "object") {
+            if (!(Object.keys(obj).length === 0 && obj.constructor === Object)) {
+              let objEntries = [];
+              for (const [key, value] of Object.entries(error.cause)) {
+                if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") {
+                  objEntries.push({
+                    key: key,
+                    value: value
+                  });
+                } else {
+                  objEntries.push({
+                    key: key,
+                    value: value.toString()
+                  });
+                }
+              }
+              obj.ExceptionSpecific = objEntries;
+            }
+          }
+        }
       } else {
         obj.Type = typeof fullError.error || null;
         obj.Message = fullError.message || null;
