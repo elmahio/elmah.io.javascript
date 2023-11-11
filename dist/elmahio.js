@@ -1427,7 +1427,7 @@
           if (typeof error.cause === "function") {
             obj.ExceptionSpecific = [{
               key: "cause",
-              value: error.cause.toString()
+              value: Object.prototype.toString.call(error.cause)
             }];
           }
           if (typeof error.cause === "object") {
