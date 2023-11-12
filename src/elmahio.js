@@ -1035,9 +1035,6 @@
                     if (typeof error.cause === "symbol") {
                         obj.ExceptionSpecific = [{ key: "cause", value: error.cause.toString() }];
                     }
-                    if (typeof error.cause === "function") {
-                        obj.ExceptionSpecific = [{ key: "cause", value: Object.prototype.toString.call(error.cause) }];
-                    }
                     if (typeof error.cause === "object") {
                         if (!(Object.keys(obj).length === 0 && obj.constructor === Object)) {
                             let objEntries = [];
