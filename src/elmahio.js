@@ -1029,6 +1029,12 @@
                     if (typeof error.cause === "number" || typeof error.cause === "string" || typeof error.cause === "boolean") {
                         obj.ExceptionSpecific = [{ key: "cause", value: error.cause }];
                     }
+                    if (typeof error.cause === "bigint") {
+                        obj.ExceptionSpecific = [{ key: "cause", value: "BigInt(\"" + parseInt(error.cause) + "\")" }];
+                    }
+                    if (typeof error.cause === "symbol") {
+                        obj.ExceptionSpecific = [{ key: "cause", value: error.cause.toString() }];
+                    }
                     if (typeof error.cause === "function") {
                         obj.ExceptionSpecific = [{ key: "cause", value: Object.prototype.toString.call(error.cause) }];
                     }
@@ -1038,7 +1044,11 @@
                             for (const [key, value] of Object.entries(error.cause)) {
                                 if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") {
                                     objEntries.push({ key: key, value: value });
-                                } else {
+                                }
+                                if (typeof value === "bigint") {
+                                    objEntries.push({ key: key, value: "BigInt(\"" + parseInt(value) + "\")" });
+                                }
+                                if (typeof value === "symbol") {
                                     objEntries.push({ key: key, value: value.toString() });
                                 }
                             }

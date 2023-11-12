@@ -1424,6 +1424,18 @@
               value: error.cause
             }];
           }
+          if (typeof error.cause === "bigint") {
+            obj.ExceptionSpecific = [{
+              key: "cause",
+              value: "BigInt(\"" + parseInt(error.cause) + "\")"
+            }];
+          }
+          if (typeof error.cause === "symbol") {
+            obj.ExceptionSpecific = [{
+              key: "cause",
+              value: error.cause.toString()
+            }];
+          }
           if (typeof error.cause === "function") {
             obj.ExceptionSpecific = [{
               key: "cause",
@@ -1439,7 +1451,14 @@
                     key: key,
                     value: value
                   });
-                } else {
+                }
+                if (typeof value === "bigint") {
+                  objEntries.push({
+                    key: key,
+                    value: "BigInt(\"" + parseInt(value) + "\")"
+                  });
+                }
+                if (typeof value === "symbol") {
                   objEntries.push({
                     key: key,
                     value: value.toString()
