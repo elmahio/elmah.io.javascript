@@ -1427,7 +1427,7 @@
           if (typeof error.cause === "bigint") {
             obj.ExceptionSpecific = [{
               key: "cause",
-              value: "BigInt(\"" + parseInt(error.cause) + "\")"
+              value: error.cause.toString() + "n"
             }];
           }
           if (typeof error.cause === "symbol") {
@@ -1449,7 +1449,7 @@
                 if (typeof value === "bigint") {
                   objEntries.push({
                     key: key,
-                    value: "BigInt(\"" + parseInt(value) + "\")"
+                    value: error.cause.toString() + "n"
                   });
                 }
                 if (typeof value === "symbol") {
