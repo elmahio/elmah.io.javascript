@@ -1449,7 +1449,7 @@
                 if (typeof value === "bigint") {
                   objEntries.push({
                     key: key,
-                    value: error.cause.toString() + "n"
+                    value: value.toString() + "n"
                   });
                 }
                 if (typeof value === "symbol") {
