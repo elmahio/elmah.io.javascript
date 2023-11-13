@@ -1043,7 +1043,7 @@
                                     objEntries.push({ key: key, value: value });
                                 }
                                 if (typeof value === "bigint") {
-                                    objEntries.push({ key: key, value: error.cause.toString() + "n" });
+                                    objEntries.push({ key: key, value: value.toString() + "n" });
                                 }
                                 if (typeof value === "symbol") {
                                     objEntries.push({ key: key, value: value.toString() });
