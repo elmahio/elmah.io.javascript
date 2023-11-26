@@ -1693,10 +1693,12 @@
               stackGPS(error.error, xhr, jsonData);
             });
           } else {
-            jsonData.data.push({
-              "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
-              "value": JSON.stringify(inspectorObj(error.error, errorLog))
-            });
+            if (jsonData.detail) {
+              jsonData.data.push({
+                "key": "X-ELMAHIO-EXCEPTIONINSPECTOR",
+                "value": JSON.stringify(inspectorObj(error.error, errorLog))
+              });
+            }
             xhr.send(JSON.stringify(jsonData));
           }
         }

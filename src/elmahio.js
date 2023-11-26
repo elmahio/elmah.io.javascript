@@ -1334,8 +1334,11 @@
                         });
 	                } else {
                         // Add inspector to jsonData
-                        jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(inspectorObj(error.error, errorLog)) });
-	                	// send message
+                        if (jsonData.detail) {
+                            jsonData.data.push({ "key": "X-ELMAHIO-EXCEPTIONINSPECTOR", "value": JSON.stringify(inspectorObj(error.error, errorLog)) });
+                        }
+
+                        // send message
                     	xhr.send(JSON.stringify(jsonData));
 	                }
                 }
