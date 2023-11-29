@@ -1410,7 +1410,7 @@
     function inspectorObj(error, fullError) {
       var obj = {};
       obj.Id = guid();
-      if (typeof error === "object") {
+      if (typeof error === "object" && error !== null) {
         var stack = error && objectLength(error.stack) !== 0 && typeof error === "object" ? ErrorStackParser.parse(error) : '';
         obj.Type = error.name || null;
         obj.Message = error.message || null;
