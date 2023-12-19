@@ -188,6 +188,14 @@ declare namespace Elmahio {
          */
         correlationId: string;
         /**
+         * Code can be used to include source code related to the log message. The code will typically span from a few lines before the line causing the log message to a few lines after.
+         */
+        code: string;
+        /**
+         * The log message category. Category can be a string of choice but typically contain a logging category set by a logging framework.
+         */
+        category: string;
+        /**
          * A key/value pair of cookies. This property only makes sense for logging messages related to web requests.
          */
         cookies: Array<Item>;
