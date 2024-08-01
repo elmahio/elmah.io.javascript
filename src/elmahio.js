@@ -1777,7 +1777,7 @@
             // -- Log on window unhandled rejection
             window.onunhandledrejection = function (event) {
                 var errorLog = {
-                    'message': event.reason.message,
+                    'message': event.reason && event.reason.message ? event.reason.message : undefined,
                     'error': event.reason.message && event.reason.stack ? event.reason : undefined
                 };
 
