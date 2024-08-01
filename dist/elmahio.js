@@ -2055,7 +2055,7 @@
       window.onunhandledrejection = function(event) {
         var errorLog = {
           'message': event.reason && event.reason.message ? event.reason.message : undefined,
-          'error': event.reason.message && event.reason.stack ? event.reason : undefined
+          'error': event.reason && event.reason.message && event.reason.stack ? event.reason : undefined
         };
         setTimeout(function() {
           sendPayload(settings.apiKey, settings.logId, confirmResponse, errorLog);
