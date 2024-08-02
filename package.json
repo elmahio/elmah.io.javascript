@@ -1,7 +1,7 @@
 {
   "name": "elmah.io.javascript",
   "description": "elmah.io javascript logger.",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "repository": "https://github.com/elmahio/elmah.io.javascript",
   "license": "Apache-2.0",
   "main": "dist/elmahio.js",
@@ -23,6 +23,5 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-strip-comments": "^2.5.2",
     "lodash": "~4.17.10"
-  },
-  "dependencies": {}
+  }
 }
