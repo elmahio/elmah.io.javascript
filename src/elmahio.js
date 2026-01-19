@@ -842,6 +842,18 @@
             var payload_serverVariables = [];
             if (navigator.language) payload_serverVariables.push({ "key": "User-Language", "value": navigator.language });
             if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
+            if (navigator.userAgentData) {
+                if (navigator.userAgentData.brands) {
+                    const brandsValue = navigator.userAgentData.brands.map(b => '"'+ b.brand +'";v="'+ b.version +'"').join(", "); 
+                    payload_serverVariables.push({ "key": "sec-ch-ua", "value": brandsValue });
+                }
+                if (navigator.userAgentData.mobile !== undefined) {
+                    payload_serverVariables.push({ "key": "sec-ch-ua-mobile", "value": navigator.userAgentData.mobile.toString() });
+                }
+                if (navigator.userAgentData.platform) {
+                    payload_serverVariables.push({ "key": "sec-ch-ua-platform", "value": navigator.userAgentData.platform });
+                }
+            }
             if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
             if (document.location.protocol === "https:") payload_serverVariables.push({ "key": "HTTPS", "value": 'on' });
             if (document.location.hostname) payload_serverVariables.push({ "key": "Host", "value": document.location.hostname });
