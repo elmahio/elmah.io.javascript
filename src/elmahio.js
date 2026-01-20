@@ -848,10 +848,10 @@
                     payload_serverVariables.push({ "key": "sec-ch-ua", "value": brandsValue });
                 }
                 if (navigator.userAgentData.mobile !== undefined) {
-                    payload_serverVariables.push({ "key": "sec-ch-ua-mobile", "value": navigator.userAgentData.mobile.toString() });
+                    payload_serverVariables.push({ "key": "sec-ch-ua-mobile", "value": navigator.userAgentData.mobile ? "?1" : "?0" });
                 }
                 if (navigator.userAgentData.platform) {
-                    payload_serverVariables.push({ "key": "sec-ch-ua-platform", "value": navigator.userAgentData.platform });
+                    payload_serverVariables.push({ "key": "sec-ch-ua-platform", "value": '"' + navigator.userAgentData.mobile.toString() + '"' });
                 }
             }
             if (document.referrer) payload_serverVariables.push({ "key": "Referer", "value": document.referrer });
