@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 4.1.1
+ * elmah.io Javascript Logger - version 4.2.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1237,6 +1237,27 @@
         "key": "User-Agent",
         "value": navigator.userAgent
       });
+      if (navigator.userAgentData) {
+        if (navigator.userAgentData.brands) {
+          const brandsValue = navigator.userAgentData.brands.map(b => '"' + b.brand + '";v="' + b.version + '"').join(", ");
+          payload_serverVariables.push({
+            "key": "sec-ch-ua",
+            "value": brandsValue
+          });
+        }
+        if (navigator.userAgentData.mobile !== undefined) {
+          payload_serverVariables.push({
+            "key": "sec-ch-ua-mobile",
+            "value": navigator.userAgentData.mobile ? "?1" : "?0"
+          });
+        }
+        if (navigator.userAgentData.platform) {
+          payload_serverVariables.push({
+            "key": "sec-ch-ua-platform",
+            "value": '"' + navigator.userAgentData.platform + '"'
+          });
+        }
+      }
       if (document.referrer) payload_serverVariables.push({
         "key": "Referer",
         "value": document.referrer
