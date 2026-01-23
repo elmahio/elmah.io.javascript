@@ -843,7 +843,7 @@
             if (navigator.language) payload_serverVariables.push({ "key": "User-Language", "value": navigator.language });
             if (navigator.userAgent) payload_serverVariables.push({ "key": "User-Agent", "value": navigator.userAgent });
             if (navigator.userAgentData) {
-                if (navigator.userAgentData.brands) {
+                if (navigator.userAgentData.brands && navigator.userAgentData.brands.length) {
                     const brandsValue = navigator.userAgentData.brands.map(b => '"'+ b.brand +'";v="'+ b.version +'"').join(", "); 
                     payload_serverVariables.push({ "key": "sec-ch-ua", "value": brandsValue });
                 }
