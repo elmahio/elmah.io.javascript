@@ -847,7 +847,7 @@
                     const brandsValue = navigator.userAgentData.brands.map(b => '"'+ b.brand +'";v="'+ b.version +'"').join(", "); 
                     payload_serverVariables.push({ "key": "sec-ch-ua", "value": brandsValue });
                 }
-                if (navigator.userAgentData.mobile !== undefined) {
+                if (typeof navigator.userAgentData.mobile === "boolean") {
                     payload_serverVariables.push({ "key": "sec-ch-ua-mobile", "value": navigator.userAgentData.mobile ? "?1" : "?0" });
                 }
                 if (navigator.userAgentData.platform) {
