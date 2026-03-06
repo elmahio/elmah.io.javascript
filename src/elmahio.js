@@ -509,8 +509,13 @@
                     } else {
                         var sourceMapConsumerPromise = new Promise(function (resolve, reject) {
                             return this._get(sourceMappingURL).then(function (sourceMapSource) {
-                                if (typeof sourceMapSource === "string") {
-                                    sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ""));
+                                try {
+                                    if (typeof sourceMapSource === "string") {
+                                        sourceMapSource = _parseJson(sourceMapSource.replace(/^\)\]\}'/, ""));
+                                    }
+                                } catch (e) {
+                                    reject(e);
+                                    return;
                                 }
                                 if (typeof sourceMapSource.sourceRoot === "undefined") {
                                     sourceMapSource.sourceRoot = defaultSourceRoot;
