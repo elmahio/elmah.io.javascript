@@ -1,5 +1,5 @@
 /*!
- * elmah.io Javascript Logger - version 4.2.2
+ * elmah.io Javascript Logger - version 4.3.0
  * (c) 2018 elmah.io, Apache 2.0 License, https://elmah.io
  */
 (function(root, factory) {
@@ -1226,7 +1226,7 @@
     var parent = elem.parentNode;
     if (parent) {
       var siblings = Array.prototype.filter.call(parent.children, function(c) {
-        return c.tagName === elem.tagName && c.className === elem.className;
+        return c.tagName === elem.tagName;
       });
       if (siblings.length > 1 && !(isInteractive && text)) {
         var index = Array.prototype.indexOf.call(siblings, elem) + 1;
